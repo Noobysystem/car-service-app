@@ -1,0 +1,13 @@
+﻿version: '3.8'
+services:
+  car-service:
+    build: .
+    container_name: car-service-app
+    restart: unless-stopped
+    ports:
+      - "8085:8000"
+    volumes:
+      - ./data:/app/data
+      - ./app/static:/app/static
+    environment:
+      - TZ=Asia/Yekaterinburg
