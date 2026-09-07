@@ -26,15 +26,29 @@ def calculate_status(current_km: int, last_km: int, interval_km: int):
 @app.get("/", response_class=HTMLResponse)
 def dashboard(request: Request, db: Session = Depends(get_db)):
     vehicles = db.query(models.Vehicle).all()
+    today_str = date.today().isoformat()
     car_cards = []
+    
     for v in vehicles:
         rules_status = []
         for r in v.rules:
             stat = calculate_status(v.current_mileage, r.last_mileage, r.interval_km)
             rules_status.append({"rule": r, "calc": stat})
-        car_cards.append({"vehicle": v, "rules": rules_status})
+        
+        # Сортировка истории ТО: свежие сверху
+        services = sorted(v.services, key=lambda s: (s.date, s.mileage), reverse=True)
+        
+        car_cards.append({
+            "vehicle": v,
+            "rules": rules_status,
+            "services": services
+        })
 
-    return templates.TemplateResponse(request=request, name="index.html", context={"cars": car_cards})
+    return templates.TemplateResponse(
+        request=request, 
+        name="index.html", 
+        context={"cars": car_cards, "today": today_str}
+    )
 
 @app.post("/vehicles/{vehicle_id}/update-mileage")
 def update_mileage(vehicle_id: int, mileage: int = Form(...), db: Session = Depends(get_db)):
@@ -45,15 +59,48 @@ def update_mileage(vehicle_id: int, mileage: int = Form(...), db: Session = Depe
     return RedirectResponse(url="/", status_code=303)
 
 @app.post("/vehicles/{vehicle_id}/add-service")
-def add_service(vehicle_id: int, title: str = Form(...), mileage: int = Form(...), cost: float = Form(0.0), notes: str = Form(""), rule_id: int = Form(None), db: Session = Depends(get_db)):
-    log = models.ServiceLog(vehicle_id=vehicle_id, date=date.today(), mileage=mileage, title=title, notes=notes, cost=cost)
+def add_service(
+    vehicle_id: int,
+    title: str = Form(...),
+    mileage: int = Form(...),
+    service_date: str = Form(None),
+    cost: float = Form(0.0),
+    notes: str = Form(""),
+    rule_id: str = Form(""),
+    db: Session = Depends(get_db)
+):
+    try:
+        parsed_date = date.fromisoformat(service_date) if service_date else date.today()
+    except ValueError:
+        parsed_date = date.today()
+
+    log = models.ServiceLog(
+        vehicle_id=vehicle_id,
+        date=parsed_date,
+        mileage=mileage,
+        title=title,
+        notes=notes,
+        cost=cost
+    )
     db.add(log)
+    
     vehicle = db.query(models.Vehicle).get(vehicle_id)
-    if mileage > vehicle.current_mileage:
+    if vehicle and mileage > vehicle.current_mileage:
         vehicle.current_mileage = mileage
-    if rule_id:
-        rule = db.query(models.MaintenanceRule).get(rule_id)
+
+    # Если выбран регламент — сбрасываем счетчик последнего ТО
+    if rule_id and rule_id.strip().isdigit():
+        rule = db.query(models.MaintenanceRule).get(int(rule_id))
         if rule:
             rule.last_mileage = mileage
+
     db.commit()
+    return RedirectResponse(url="/", status_code=303)
+
+@app.post("/services/{service_id}/delete")
+def delete_service(service_id: int, db: Session = Depends(get_db)):
+    log = db.query(models.ServiceLog).filter(models.ServiceLog.id == service_id).first()
+    if log:
+        db.delete(log)
+        db.commit()
     return RedirectResponse(url="/", status_code=303)

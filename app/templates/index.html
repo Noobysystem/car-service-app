@@ -6,34 +6,39 @@
     <title>Семейный Гараж</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-100 text-slate-900 pb-12">
+<body class="bg-slate-100 text-slate-900 pb-16">
     <header class="bg-slate-800 text-white p-4 shadow-md sticky top-0 z-10">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-bold">Гараж ТО</h1>
-            <span class="text-xs bg-slate-700 px-2 py-1 rounded">ZimaOS Host</span>
+            <span class="text-xs bg-slate-700 px-2 py-1 rounded font-mono">ZimaOS Host</span>
         </div>
     </header>
+
     <main class="max-w-4xl mx-auto p-4 space-y-6">
         {% for item in cars %}
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <!-- Шапка автомобиля -->
             <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-start">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">{{ item.vehicle.name }}</h2>
                     <span class="text-xs text-slate-500 font-mono">{{ item.vehicle.plate_number or 'Без номера' }} • {{ item.vehicle.engine }}</span>
                 </div>
+                
                 <form action="/vehicles/{{ item.vehicle.id }}/update-mileage" method="POST" class="flex items-center gap-1">
                     <input type="number" name="mileage" value="{{ item.vehicle.current_mileage }}" class="w-24 text-right px-2 py-1 border rounded text-sm font-semibold bg-white">
                     <span class="text-xs text-slate-500">км</span>
-                    <button type="submit" class="text-xs bg-slate-200 hover:bg-slate-300 p-1.5 rounded">💾</button>
+                    <button type="submit" class="text-xs bg-slate-200 hover:bg-slate-300 p-1.5 rounded transition" title="Сохранить пробег">💾</button>
                 </form>
             </div>
+
+            <!-- Регламенты -->
             <div class="p-4 space-y-3">
                 <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Состояние регламентов</h3>
                 {% for r in item.rules %}
                 <div class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
                     <div>
                         <div class="font-medium text-sm text-slate-700">{{ r.rule.title }}</div>
-                        <div class="text-xs text-slate-400">Интервал: каждые {{ r.rule.interval_km }} км</div>
+                        <div class="text-xs text-slate-400">Интервал: каждые {{ r.rule.interval_km }} км (прошлое ТО на {{ r.rule.last_mileage }} км)</div>
                     </div>
                     <div class="text-right">
                         {% if r.calc.remaining <= 0 %}
@@ -44,9 +49,142 @@
                     </div>
                 </div>
                 {% endfor %}
+
+                <!-- Шаблоны опций для модалки -->
+                <template id="rules-{{ item.vehicle.id }}">
+                    <option value="">-- Без сброса регламента (разовый ремонт/прочее) --</option>
+                    {% for r in item.rules %}
+                    <option value="{{ r.rule.id }}" data-title="{{ r.rule.title }}">{{ r.rule.title }}</option>
+                    {% endfor %}
+                </template>
+
+                <!-- Раскрывающийся блок: История обслуживания -->
+                <details class="mt-4 border-t border-slate-100 pt-3">
+                    <summary class="cursor-pointer text-xs font-semibold text-slate-600 hover:text-slate-900 flex justify-between items-center select-none py-1">
+                        <span>📋 История обслуживания ({{ item.services|length }})</span>
+                        <span class="text-xs text-blue-600 font-normal">Развернуть / скрыть</span>
+                    </summary>
+                    <div class="mt-3 space-y-2">
+                        {% if item.services %}
+                            {% for s in item.services %}
+                            <div class="p-3 bg-slate-50 rounded-lg text-xs border border-slate-200/70 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                                <div>
+                                    <div class="font-bold text-slate-800 text-sm">{{ s.title }}</div>
+                                    <div class="text-slate-500 mt-0.5">
+                                        📅 {{ s.date.strftime('%d.%m.%Y') }} • 📍 {{ s.mileage }} км
+                                        {% if s.notes %}<span class="text-slate-600 italic"> • {{ s.notes }}</span>{% endif %}
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between sm:justify-end gap-3">
+                                    {% if s.cost > 0 %}
+                                    <span class="font-semibold text-slate-700 bg-white px-2 py-1 rounded border border-slate-200">
+                                        {{ "{:,.0f}".format(s.cost).replace(',', ' ') }} ₽
+                                    </span>
+                                    {% endif %}
+                                    <form action="/services/{{ s.id }}/delete" method="POST" onsubmit="return confirm('Удалить эту запись из истории?');">
+                                        <button type="submit" class="text-slate-400 hover:text-red-600 p-1 text-sm" title="Удалить">🗑️</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-xs text-slate-400 italic py-2">Записей о работах пока нет.</p>
+                        {% endif %}
+                    </div>
+                </details>
+            </div>
+
+            <!-- Кнопки действий -->
+            <div class="px-4 py-3 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
+                <button onclick="openServiceModal('{{ item.vehicle.id }}', '{{ item.vehicle.name }}', '{{ item.vehicle.current_mileage }}')" 
+                        class="text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 px-3.5 py-2 rounded-lg shadow-sm transition">
+                    + Запись о ТО
+                </button>
             </div>
         </div>
         {% endfor %}
     </main>
+
+    <!-- Модальное окно добавления записи о ТО -->
+    <div id="serviceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-lg w-full overflow-hidden border border-slate-200">
+            <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                <h3 id="modalCarTitle" class="font-bold text-slate-800 text-base">Новая запись ТО</h3>
+                <button onclick="closeServiceModal()" class="text-slate-400 hover:text-slate-600 text-lg leading-none">&times;</button>
+            </div>
+            
+            <form id="serviceForm" method="POST" class="p-4 space-y-3.5">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Связать с регламентом (для сброса интервала)</label>
+                    <select id="modalRuleSelect" name="rule_id" onchange="onRuleSelectChange()" class="w-full text-sm border rounded-lg p-2 bg-slate-50 border-slate-300">
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Название работы / операции *</label>
+                    <input type="text" id="modalTitle" name="title" required placeholder="Например: Замена моторного масла и фильтра" 
+                           class="w-full text-sm border rounded-lg p-2 border-slate-300 focus:outline-blue-500">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Пробег при выполнении *</label>
+                        <input type="number" id="modalMileage" name="mileage" required 
+                               class="w-full text-sm border rounded-lg p-2 border-slate-300">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Дата</label>
+                        <input type="date" name="service_date" value="{{ today }}" 
+                               class="w-full text-sm border rounded-lg p-2 border-slate-300">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Стоимость (запчасти + работа), ₽</label>
+                    <input type="number" step="0.1" name="cost" value="0" 
+                           class="w-full text-sm border rounded-lg p-2 border-slate-300">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Заметки / артикулы запчастей / сервис</label>
+                    <textarea name="notes" rows="2" placeholder="Бренд масла, вязкость, каталожные номера..." 
+                              class="w-full text-sm border rounded-lg p-2 border-slate-300"></textarea>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2 border-t border-slate-100">
+                    <button type="button" onclick="closeServiceModal()" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg">Отмена</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm">Сохранить запись</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openServiceModal(carId, carName, currentMileage) {
+            document.getElementById('serviceForm').action = `/vehicles/${carId}/add-service`;
+            document.getElementById('modalCarTitle').textContent = `Запись ТО: ${carName}`;
+            document.getElementById('modalMileage').value = currentMileage;
+            
+            const select = document.getElementById('modalRuleSelect');
+            const template = document.getElementById(`rules-${carId}`);
+            select.innerHTML = template.innerHTML;
+            document.getElementById('modalTitle').value = '';
+            
+            document.getElementById('serviceModal').classList.remove('hidden');
+        }
+
+        function closeServiceModal() {
+            document.getElementById('serviceModal').classList.add('hidden');
+        }
+
+        function onRuleSelectChange() {
+            const select = document.getElementById('modalRuleSelect');
+            const selectedOpt = select.options[select.selectedIndex];
+            const ruleTitle = selectedOpt.getAttribute('data-title');
+            if (ruleTitle) {
+                document.getElementById('modalTitle').value = ruleTitle;
+            }
+        }
+    </script>
 </body>
 </html>
