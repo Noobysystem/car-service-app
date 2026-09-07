@@ -34,7 +34,7 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
             rules_status.append({"rule": r, "calc": stat})
         car_cards.append({"vehicle": v, "rules": rules_status})
 
-    return templates.TemplateResponse("index.html", {"request": request, "cars": car_cards})
+    return templates.TemplateResponse(request=request, name="index.html", context={"cars": car_cards})
 
 @app.post("/vehicles/{vehicle_id}/update-mileage")
 def update_mileage(vehicle_id: int, mileage: int = Form(...), db: Session = Depends(get_db)):
