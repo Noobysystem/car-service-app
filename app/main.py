@@ -17,7 +17,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates.env.filters["currency"] = lambda val: f"{val:,.0f}".replace(",", " ") + " ₽"
 
 def migrate_and_seed_data(db: Session):
-    # 1. Удаляем Калину и Прадо по запросу
+    # Очистка других авто
     cars_to_remove = db.query(models.Vehicle).filter(
         (models.Vehicle.name.contains("Калина")) | (models.Vehicle.name.contains("Prado"))
     ).all()
@@ -25,39 +25,28 @@ def migrate_and_seed_data(db: Session):
         db.delete(c)
     db.commit()
 
-    # 2. Убеждаемся, что Honda N-WGN настроена корректно
     nwgn = db.query(models.Vehicle).filter(models.Vehicle.name.contains("N-WGN")).first()
     if not nwgn:
         nwgn = models.Vehicle(name="Honda N-WGN Custom", engine="0.66 Атмо 4WD (S07A)", current_mileage=125000)
         db.add(nwgn)
         db.commit()
-    else:
-        nwgn.engine = "0.66 Атмо 4WD (S07A)"
-        db.commit()
 
-    # Проверяем базовые регламенты для Honda N-WGN
-    existing_rule_titles = [r.title for r in nwgn.rules]
-    new_rules = []
-    if not any("масла ДВС" in t for t in existing_rule_titles):
-        new_rules.append(models.MaintenanceRule(vehicle_id=nwgn.id, title="Замена масла ДВС (малый картер)", interval_km=5000, last_mileage=nwgn.current_mileage))
-    if not any("вариатора" in t for t in existing_rule_titles):
-        new_rules.append(models.MaintenanceRule(vehicle_id=nwgn.id, title="Замена спецжидкости вариатора (HCF-2)", interval_km=25000, last_mileage=nwgn.current_mileage))
-    if not any("редуктор" in t for t in existing_rule_titles):
-        new_rules.append(models.MaintenanceRule(vehicle_id=nwgn.id, title="Масло в заднем редукторе 4WD (DPSF-II)", interval_km=40000, last_mileage=nwgn.current_mileage))
-    if new_rules:
-        db.add_all(new_rules)
-        db.commit()
+    # Обновление указанных вами пробегов для регламентов вариатора и редуктора
+    cvt_rule = db.query(models.MaintenanceRule).filter(
+        models.MaintenanceRule.vehicle_id == nwgn.id,
+        models.MaintenanceRule.title.contains("вариатора")
+    ).first()
+    if cvt_rule and cvt_rule.last_mileage != 100000:
+        cvt_rule.last_mileage = 100000
 
-    # Проверяем базовые артикулы Honda N-WGN
-    if not nwgn.parts:
-        db.add_all([
-            models.PartReference(vehicle_id=nwgn.id, category="Масляный фильтр", part_number="15400-RTA-003", brand="Honda OEM", description="Аналоги: Mahle OC617, VIC C-809"),
-            models.PartReference(vehicle_id=nwgn.id, category="Моторное масло", part_number="08218-99974", brand="Honda Ultra Leo 0W-20", description="Объем: ~2.6 л с фильтром"),
-            models.PartReference(vehicle_id=nwgn.id, category="Жидкость вариатора", part_number="08260-99964", brand="Honda Ultra HCF-2", description="Объем частичной замены: ~2.4 л"),
-            models.PartReference(vehicle_id=nwgn.id, category="Масло в задний редуктор 4WD", part_number="08262-99964", brand="Honda Ultra DPSF-II", description="Объем: ~1.0-1.2 л"),
-            models.PartReference(vehicle_id=nwgn.id, category="Аккумулятор", part_number="M-42R", brand="Furukawa / GS Yuasa", description="EFB под систему Start-Stop"),
-        ])
-        db.commit()
+    diff_rule = db.query(models.MaintenanceRule).filter(
+        models.MaintenanceRule.vehicle_id == nwgn.id,
+        models.MaintenanceRule.title.contains("редуктор")
+    ).first()
+    if diff_rule and diff_rule.last_mileage != 90000:
+        diff_rule.last_mileage = 90000
+
+    db.commit()
 
 def calculate_status(current_km: int, last_km: int, interval_km: int):
     passed = current_km - last_km
@@ -149,7 +138,7 @@ def delete_vehicle(vehicle_id: int, db: Session = Depends(get_db)):
         db.commit()
     return RedirectResponse(url="/", status_code=303)
 
-# --- Управление регламентами ---
+# --- Управление регламентами (добавление, редактирование, удаление) ---
 @app.post("/vehicles/{vehicle_id}/add-rule")
 def add_rule(
     vehicle_id: int,
@@ -168,6 +157,22 @@ def add_rule(
     db.commit()
     return RedirectResponse(url="/", status_code=303)
 
+@app.post("/rules/{rule_id}/edit")
+def edit_rule(
+    rule_id: int,
+    title: str = Form(...),
+    interval_km: int = Form(...),
+    last_mileage: int = Form(...),
+    db: Session = Depends(get_db)
+):
+    rule = db.query(models.MaintenanceRule).filter(models.MaintenanceRule.id == rule_id).first()
+    if rule:
+        rule.title = title.strip()
+        rule.interval_km = interval_km
+        rule.last_mileage = last_mileage
+        db.commit()
+    return RedirectResponse(url="/", status_code=303)
+
 @app.post("/rules/{rule_id}/delete")
 def delete_rule(rule_id: int, db: Session = Depends(get_db)):
     rule = db.query(models.MaintenanceRule).filter(models.MaintenanceRule.id == rule_id).first()
@@ -176,7 +181,7 @@ def delete_rule(rule_id: int, db: Session = Depends(get_db)):
         db.commit()
     return RedirectResponse(url="/", status_code=303)
 
-# --- Пробег, ТО, Артикулы ---
+# --- Одометр, ТО, Расходники ---
 @app.post("/vehicles/{vehicle_id}/update-mileage")
 def update_mileage(vehicle_id: int, mileage: int = Form(...), db: Session = Depends(get_db)):
     vehicle = db.query(models.Vehicle).filter(models.Vehicle.id == vehicle_id).first()

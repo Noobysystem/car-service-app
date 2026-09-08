@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 text-slate-900 pb-16">
-    <!-- Шапка -->
     <header class="bg-slate-800 text-white p-4 shadow-md sticky top-0 z-10">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-bold flex items-center gap-2">
@@ -67,7 +66,6 @@
         <!-- Список автомобилей -->
         {% for item in cars %}
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <!-- Шапка автомобиля -->
             <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                     <div class="flex items-center gap-2">
@@ -75,7 +73,6 @@
                         <span class="text-xs font-semibold px-2 py-0.5 bg-slate-200/80 text-slate-700 rounded" title="Всего затрат">
                             {{ item.total_cost | currency }}
                         </span>
-                        <!-- Удалить авто -->
                         <form action="/vehicles/{{ item.vehicle.id }}/delete" method="POST" onsubmit="return confirm('Удалить {{ item.vehicle.name }} и всю историю ТО?');" class="inline">
                             <button type="submit" class="text-slate-300 hover:text-red-500 text-xs p-1" title="Удалить авто из гаража">✕</button>
                         </form>
@@ -88,7 +85,6 @@
                     </div>
                 </div>
                 
-                <!-- Одометр -->
                 <form action="/vehicles/{{ item.vehicle.id }}/update-mileage" method="POST" class="flex items-center gap-1 self-end sm:self-auto">
                     <input type="number" name="mileage" value="{{ item.vehicle.current_mileage }}" class="w-24 text-right px-2 py-1 border rounded text-sm font-semibold bg-white">
                     <span class="text-xs text-slate-500">км</span>
@@ -107,18 +103,23 @@
 
                 {% for r in item.rules %}
                 <div class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
-                    <div class="flex items-center gap-2">
-                        <div>
-                            <div class="font-medium text-sm text-slate-700">{{ r.rule.title }}</div>
-                            <div class="text-xs text-slate-400">Интервал: каждые {{ r.rule.interval_km }} км (прошлое ТО на {{ r.rule.last_mileage }} км)</div>
-                        </div>
+                    <div>
+                        <div class="font-medium text-sm text-slate-700">{{ r.rule.title }}</div>
+                        <div class="text-xs text-slate-400">Интервал: каждые {{ r.rule.interval_km }} км (прошлое ТО на {{ r.rule.last_mileage }} км)</div>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-1.5">
                         {% if r.calc.remaining <= 0 %}
                         <span class="px-2.5 py-1 rounded-full text-xs font-bold {{ r.calc.color }}">Просрочено на {{ r.calc.remaining | abs }} км</span>
                         {% else %}
                         <span class="px-2.5 py-1 rounded-full text-xs font-medium {{ r.calc.color }}">Осталось {{ r.calc.remaining }} км</span>
                         {% endif %}
+                        
+                        <!-- Кнопка редактирования регламента -->
+                        <button onclick="openEditRuleModal('{{ r.rule.id }}', '{{ r.rule.title }}', '{{ r.rule.interval_km }}', '{{ r.rule.last_mileage }}')" 
+                                class="text-slate-400 hover:text-blue-600 p-1 text-xs" title="Изменить регламент (пробег прошлого ТО, интервал)">
+                            ✏️
+                        </button>
+                        <!-- Кнопка удаления регламента -->
                         <form action="/rules/{{ r.rule.id }}/delete" method="POST" onsubmit="return confirm('Удалить этот регламент?');">
                             <button type="submit" class="text-slate-300 hover:text-red-500 text-xs p-1" title="Удалить регламент">✕</button>
                         </form>
@@ -207,7 +208,37 @@
         {% endfor %}
     </main>
 
-    <!-- Модальное окно: Добавить автомобиль -->
+    <!-- Модальное окно: Редактировать регламент -->
+    <div id="editRuleModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden border border-slate-200">
+            <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                <h3 class="font-bold text-slate-800 text-base">Изменить регламент</h3>
+                <button onclick="closeEditRuleModal()" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+            </div>
+            <form id="editRuleForm" method="POST" class="p-4 space-y-3">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Название регламента *</label>
+                    <input type="text" id="editRuleTitle" name="title" required class="w-full text-sm border rounded-lg p-2 border-slate-300">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Интервал (км) *</label>
+                        <input type="number" id="editRuleInterval" name="interval_km" required class="w-full text-sm border rounded-lg p-2 border-slate-300">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Пробег прошлого ТО *</label>
+                        <input type="number" id="editRuleLastMileage" name="last_mileage" required class="w-full text-sm border rounded-lg p-2 border-slate-300">
+                    </div>
+                </div>
+                <div class="pt-2 flex justify-end gap-2 border-t border-slate-100">
+                    <button type="button" onclick="closeEditRuleModal()" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg">Отмена</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm">Сохранить изменения</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Добавить авто -->
     <div id="addCarModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden border border-slate-200">
             <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
@@ -337,6 +368,15 @@
     </div>
 
     <script>
+        function openEditRuleModal(ruleId, title, interval, lastMileage) {
+            document.getElementById('editRuleForm').action = `/rules/${ruleId}/edit`;
+            document.getElementById('editRuleTitle').value = title;
+            document.getElementById('editRuleInterval').value = interval;
+            document.getElementById('editRuleLastMileage').value = lastMileage;
+            document.getElementById('editRuleModal').classList.remove('hidden');
+        }
+        function closeEditRuleModal() { document.getElementById('editRuleModal').classList.add('hidden'); }
+
         function openAddCarModal() { document.getElementById('addCarModal').classList.remove('hidden'); }
         function closeAddCarModal() { document.getElementById('addCarModal').classList.add('hidden'); }
 
