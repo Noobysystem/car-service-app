@@ -7,12 +7,18 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 text-slate-900 pb-16">
+    <!-- Шапка -->
     <header class="bg-slate-800 text-white p-4 shadow-md sticky top-0 z-10">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-bold flex items-center gap-2">
                 <span>🚗</span> Гараж ТО
             </h1>
-            <span class="text-xs bg-slate-700 px-2 py-1 rounded font-mono text-slate-300">ZimaOS Host</span>
+            <div class="flex items-center gap-2">
+                <button onclick="openAddCarModal()" class="text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg shadow-sm transition">
+                    + Добавить авто
+                </button>
+                <span class="text-xs bg-slate-700 px-2 py-1 rounded font-mono text-slate-300">ZimaOS Host</span>
+            </div>
         </div>
     </header>
 
@@ -21,7 +27,7 @@
     </div>
 
     <main class="max-w-4xl mx-auto p-4 space-y-6">
-        <!-- Виджет аналитики расходов -->
+        <!-- Сводная аналитика расходов -->
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                 <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Всего расходов</div>
@@ -54,11 +60,11 @@
                     </span>
                     {% endif %}
                 </div>
-                <div class="text-[11px] text-slate-400 mt-0.5">по всем 3 авто</div>
+                <div class="text-[11px] text-slate-400 mt-0.5">по всем авто</div>
             </div>
         </div>
 
-        <!-- Карточки автомобилей -->
+        <!-- Список автомобилей -->
         {% for item in cars %}
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <!-- Шапка автомобиля -->
@@ -66,10 +72,13 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <h2 class="text-lg font-bold text-slate-800">{{ item.vehicle.name }}</h2>
-                        <!-- Траты по конкретной машине -->
-                        <span class="text-xs font-semibold px-2 py-0.5 bg-slate-200/80 text-slate-700 rounded" title="Всего потрачено на это авто">
+                        <span class="text-xs font-semibold px-2 py-0.5 bg-slate-200/80 text-slate-700 rounded" title="Всего затрат">
                             {{ item.total_cost | currency }}
                         </span>
+                        <!-- Удалить авто -->
+                        <form action="/vehicles/{{ item.vehicle.id }}/delete" method="POST" onsubmit="return confirm('Удалить {{ item.vehicle.name }} и всю историю ТО?');" class="inline">
+                            <button type="submit" class="text-slate-300 hover:text-red-500 text-xs p-1" title="Удалить авто из гаража">✕</button>
+                        </form>
                     </div>
                     <div class="text-xs text-slate-500 font-mono mt-0.5">
                         {{ item.vehicle.plate_number or 'Без номера' }} • {{ item.vehicle.engine }}
@@ -79,6 +88,7 @@
                     </div>
                 </div>
                 
+                <!-- Одометр -->
                 <form action="/vehicles/{{ item.vehicle.id }}/update-mileage" method="POST" class="flex items-center gap-1 self-end sm:self-auto">
                     <input type="number" name="mileage" value="{{ item.vehicle.current_mileage }}" class="w-24 text-right px-2 py-1 border rounded text-sm font-semibold bg-white">
                     <span class="text-xs text-slate-500">км</span>
@@ -88,19 +98,30 @@
 
             <!-- Регламенты -->
             <div class="p-4 space-y-3">
-                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Состояние регламентов</h3>
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Состояние регламентов</h3>
+                    <button onclick="openAddRuleModal('{{ item.vehicle.id }}', '{{ item.vehicle.name }}', '{{ item.vehicle.current_mileage }}')" class="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                        + Добавить регламент
+                    </button>
+                </div>
+
                 {% for r in item.rules %}
                 <div class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
-                    <div>
-                        <div class="font-medium text-sm text-slate-700">{{ r.rule.title }}</div>
-                        <div class="text-xs text-slate-400">Интервал: каждые {{ r.rule.interval_km }} км (прошлое ТО на {{ r.rule.last_mileage }} км)</div>
+                    <div class="flex items-center gap-2">
+                        <div>
+                            <div class="font-medium text-sm text-slate-700">{{ r.rule.title }}</div>
+                            <div class="text-xs text-slate-400">Интервал: каждые {{ r.rule.interval_km }} км (прошлое ТО на {{ r.rule.last_mileage }} км)</div>
+                        </div>
                     </div>
-                    <div class="text-right">
+                    <div class="flex items-center gap-2">
                         {% if r.calc.remaining <= 0 %}
                         <span class="px-2.5 py-1 rounded-full text-xs font-bold {{ r.calc.color }}">Просрочено на {{ r.calc.remaining | abs }} км</span>
                         {% else %}
                         <span class="px-2.5 py-1 rounded-full text-xs font-medium {{ r.calc.color }}">Осталось {{ r.calc.remaining }} км</span>
                         {% endif %}
+                        <form action="/rules/{{ r.rule.id }}/delete" method="POST" onsubmit="return confirm('Удалить этот регламент?');">
+                            <button type="submit" class="text-slate-300 hover:text-red-500 text-xs p-1" title="Удалить регламент">✕</button>
+                        </form>
                     </div>
                 </div>
                 {% endfor %}
@@ -112,6 +133,7 @@
                     {% endfor %}
                 </template>
 
+                <!-- Расходники -->
                 <div id="parts-data-{{ item.vehicle.id }}" class="hidden">
                     {% for p in item.parts %}
                     <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between gap-2">
@@ -185,7 +207,71 @@
         {% endfor %}
     </main>
 
-    <!-- Модальное окно справочника расходников -->
+    <!-- Модальное окно: Добавить автомобиль -->
+    <div id="addCarModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden border border-slate-200">
+            <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                <h3 class="font-bold text-slate-800 text-base">Добавить авто в гараж</h3>
+                <button onclick="closeAddCarModal()" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+            </div>
+            <form action="/vehicles/add" method="POST" class="p-4 space-y-3">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Марка и модель *</label>
+                    <input type="text" name="name" required placeholder="Например: Toyota RAV4" class="w-full text-sm border rounded-lg p-2 border-slate-300">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Двигатель / модификация</label>
+                    <input type="text" name="engine" placeholder="Например: 2.0 Бензин 4WD" class="w-full text-sm border rounded-lg p-2 border-slate-300">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Госномер</label>
+                        <input type="text" name="plate_number" placeholder="А123АА 777" class="w-full text-sm border rounded-lg p-2 border-slate-300">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Текущий пробег, км *</label>
+                        <input type="number" name="current_mileage" value="0" required class="w-full text-sm border rounded-lg p-2 border-slate-300">
+                    </div>
+                </div>
+                <div class="pt-2 flex justify-end gap-2 border-t border-slate-100">
+                    <button type="button" onclick="closeAddCarModal()" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg">Отмена</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm">Добавить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Добавить регламент -->
+    <div id="addRuleModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden border border-slate-200">
+            <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                <h3 id="addRuleModalTitle" class="font-bold text-slate-800 text-base">Новый регламент</h3>
+                <button onclick="closeAddRuleModal()" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+            </div>
+            <form id="addRuleForm" method="POST" class="p-4 space-y-3">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Название регламента *</label>
+                    <input type="text" name="title" required placeholder="Например: Замена тормозной жидкости" class="w-full text-sm border rounded-lg p-2 border-slate-300">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Интервал (км) *</label>
+                        <input type="number" name="interval_km" required placeholder="Например: 40000" class="w-full text-sm border rounded-lg p-2 border-slate-300">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Пробег прошлого ТО *</label>
+                        <input type="number" id="ruleLastMileage" name="last_mileage" required class="w-full text-sm border rounded-lg p-2 border-slate-300">
+                    </div>
+                </div>
+                <div class="pt-2 flex justify-end gap-2 border-t border-slate-100">
+                    <button type="button" onclick="closeAddRuleModal()" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg">Отмена</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Справочник расходников -->
     <div id="partsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
             <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
@@ -208,7 +294,7 @@
         </div>
     </div>
 
-    <!-- Модальное окно ТО -->
+    <!-- Модальное окно: Запись о ТО -->
     <div id="serviceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-xl max-w-lg w-full overflow-hidden border border-slate-200">
             <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
@@ -251,6 +337,17 @@
     </div>
 
     <script>
+        function openAddCarModal() { document.getElementById('addCarModal').classList.remove('hidden'); }
+        function closeAddCarModal() { document.getElementById('addCarModal').classList.add('hidden'); }
+
+        function openAddRuleModal(carId, carName, currentMileage) {
+            document.getElementById('addRuleForm').action = `/vehicles/${carId}/add-rule`;
+            document.getElementById('addRuleModalTitle').textContent = `Новый регламент: ${carName}`;
+            document.getElementById('ruleLastMileage').value = currentMileage;
+            document.getElementById('addRuleModal').classList.remove('hidden');
+        }
+        function closeAddRuleModal() { document.getElementById('addRuleModal').classList.add('hidden'); }
+
         function openServiceModal(carId, carName, currentMileage) {
             document.getElementById('serviceForm').action = `/vehicles/${carId}/add-service`;
             document.getElementById('modalCarTitle').textContent = `Запись ТО: ${carName}`;
@@ -268,6 +365,7 @@
             const ruleTitle = selectedOpt.getAttribute('data-title');
             if (ruleTitle) document.getElementById('modalTitle').value = ruleTitle;
         }
+
         function openPartsModal(carId, carName) {
             document.getElementById('partsModalTitle').textContent = `Расходники: ${carName}`;
             document.getElementById('addPartForm').action = `/vehicles/${carId}/add-part`;
@@ -277,6 +375,7 @@
             document.getElementById('partsModal').classList.remove('hidden');
         }
         function closePartsModal() { document.getElementById('partsModal').classList.add('hidden'); }
+
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
                 const toast = document.getElementById('toast');

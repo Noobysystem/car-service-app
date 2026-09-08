@@ -14,54 +14,49 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Фильтр для красивого вывода рублей (например, 12 500 ₽)
 templates.env.filters["currency"] = lambda val: f"{val:,.0f}".replace(",", " ") + " ₽"
 
 def migrate_and_seed_data(db: Session):
-    # Корректировка Prado под бензин
-    prado = db.query(models.Vehicle).filter(models.Vehicle.name.contains("Prado")).first()
-    if prado and "Дизель" in (prado.engine or ""):
-        prado.engine = "2.7 Бензин (2TR-FE)"
-        db.query(models.PartReference).filter(
-            models.PartReference.vehicle_id == prado.id,
-            models.PartReference.category.in_(["Моторное масло", "Топливный фильтр", "Масляный фильтр"])
-        ).delete(synchronize_session=False)
-        db.add_all([
-            models.PartReference(vehicle_id=prado.id, category="Масляный фильтр", part_number="90915-YZZD2", brand="Toyota OEM", description="Для 2TR-FE"),
-            models.PartReference(vehicle_id=prado.id, category="Моторное масло", part_number="08880-80845", brand="Toyota 5W-30 / 0W-20", description="Объем: ~5.6-5.9 л (API SP, ILSAC GF-6)"),
-            models.PartReference(vehicle_id=prado.id, category="Свечи зажигания", part_number="90919-01191", brand="Denso SK20HR11", description="Иридиевые свечи, комплект 4 шт."),
-            models.PartReference(vehicle_id=prado.id, category="Смазка карданов", part_number="NLGI-2 EP", brand="Castrol / Ravenol", description="Литиевая смазка для крестовин и шлицев"),
-            models.PartReference(vehicle_id=prado.id, category="Масло в мосты/раздатку", part_number="75W-90 GL-5", brand="Toyota / Kixx", description="Раздатка: 1.4 л, передний: 1.4 л, задний: 2.7 л"),
-        ])
+    # 1. Удаляем Калину и Прадо по запросу
+    cars_to_remove = db.query(models.Vehicle).filter(
+        (models.Vehicle.name.contains("Калина")) | (models.Vehicle.name.contains("Prado"))
+    ).all()
+    for c in cars_to_remove:
+        db.delete(c)
+    db.commit()
+
+    # 2. Убеждаемся, что Honda N-WGN настроена корректно
+    nwgn = db.query(models.Vehicle).filter(models.Vehicle.name.contains("N-WGN")).first()
+    if not nwgn:
+        nwgn = models.Vehicle(name="Honda N-WGN Custom", engine="0.66 Атмо 4WD (S07A)", current_mileage=125000)
+        db.add(nwgn)
+        db.commit()
+    else:
+        nwgn.engine = "0.66 Атмо 4WD (S07A)"
         db.commit()
 
-    # Корректировка N-WGN под Атмо 4WD
-    nwgn = db.query(models.Vehicle).filter(models.Vehicle.name.contains("N-WGN")).first()
-    if nwgn and ("Turbo" in (nwgn.engine or "") or "4WD" not in (nwgn.engine or "")):
-        nwgn.engine = "0.66 Атмо 4WD (S07A)"
-        has_diff_rule = db.query(models.MaintenanceRule).filter(
-            models.MaintenanceRule.vehicle_id == nwgn.id,
-            models.MaintenanceRule.title.contains("редуктор")
-        ).first()
-        if not has_diff_rule:
-            db.add(models.MaintenanceRule(
-                vehicle_id=nwgn.id,
-                title="Масло в заднем редукторе 4WD (DPSF-II)",
-                interval_km=40000,
-                last_mileage=nwgn.current_mileage
-            ))
-        has_diff_part = db.query(models.PartReference).filter(
-            models.PartReference.vehicle_id == nwgn.id,
-            models.PartReference.category.contains("редуктор")
-        ).first()
-        if not has_diff_part:
-            db.add_all([
-                models.PartReference(vehicle_id=nwgn.id, category="Масляный фильтр", part_number="15400-RTA-003", brand="Honda OEM", description="Аналог: Mahle OC617, VIC C-809"),
-                models.PartReference(vehicle_id=nwgn.id, category="Моторное масло", part_number="08218-99974", brand="Honda Ultra Leo 0W-20", description="Объем: 2.6 л с фильтром"),
-                models.PartReference(vehicle_id=nwgn.id, category="Жидкость вариатора", part_number="08260-99964", brand="Honda Ultra HCF-2", description="Объем частичной замены: ~2.4 л"),
-                models.PartReference(vehicle_id=nwgn.id, category="Масло в задний редуктор 4WD", part_number="08262-99964", brand="Honda Ultra DPSF-II", description="Объем: ~1.0-1.2 л"),
-                models.PartReference(vehicle_id=nwgn.id, category="Аккумулятор", part_number="M-42R", brand="Furukawa / GS Yuasa", description="EFB под систему Start-Stop"),
-            ])
+    # Проверяем базовые регламенты для Honda N-WGN
+    existing_rule_titles = [r.title for r in nwgn.rules]
+    new_rules = []
+    if not any("масла ДВС" in t for t in existing_rule_titles):
+        new_rules.append(models.MaintenanceRule(vehicle_id=nwgn.id, title="Замена масла ДВС (малый картер)", interval_km=5000, last_mileage=nwgn.current_mileage))
+    if not any("вариатора" in t for t in existing_rule_titles):
+        new_rules.append(models.MaintenanceRule(vehicle_id=nwgn.id, title="Замена спецжидкости вариатора (HCF-2)", interval_km=25000, last_mileage=nwgn.current_mileage))
+    if not any("редуктор" in t for t in existing_rule_titles):
+        new_rules.append(models.MaintenanceRule(vehicle_id=nwgn.id, title="Масло в заднем редукторе 4WD (DPSF-II)", interval_km=40000, last_mileage=nwgn.current_mileage))
+    if new_rules:
+        db.add_all(new_rules)
+        db.commit()
+
+    # Проверяем базовые артикулы Honda N-WGN
+    if not nwgn.parts:
+        db.add_all([
+            models.PartReference(vehicle_id=nwgn.id, category="Масляный фильтр", part_number="15400-RTA-003", brand="Honda OEM", description="Аналоги: Mahle OC617, VIC C-809"),
+            models.PartReference(vehicle_id=nwgn.id, category="Моторное масло", part_number="08218-99974", brand="Honda Ultra Leo 0W-20", description="Объем: ~2.6 л с фильтром"),
+            models.PartReference(vehicle_id=nwgn.id, category="Жидкость вариатора", part_number="08260-99964", brand="Honda Ultra HCF-2", description="Объем частичной замены: ~2.4 л"),
+            models.PartReference(vehicle_id=nwgn.id, category="Масло в задний редуктор 4WD", part_number="08262-99964", brand="Honda Ultra DPSF-II", description="Объем: ~1.0-1.2 л"),
+            models.PartReference(vehicle_id=nwgn.id, category="Аккумулятор", part_number="M-42R", brand="Furukawa / GS Yuasa", description="EFB под систему Start-Stop"),
+        ])
         db.commit()
 
 def calculate_status(current_km: int, last_km: int, interval_km: int):
@@ -98,8 +93,6 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
             rules_status.append({"rule": r, "calc": stat})
         
         services = sorted(v.services, key=lambda s: (s.date, s.mileage), reverse=True)
-        
-        # Расчет расходов по конкретной машине
         car_total_cost = sum(s.cost for s in services if s.cost)
         car_year_cost = sum(s.cost for s in services if s.cost and s.date and s.date.year == current_year)
 
@@ -129,6 +122,61 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
         context={"cars": car_cards, "today": today_str, "stats": stats}
     )
 
+# --- Добавление и удаление авто ---
+@app.post("/vehicles/add")
+def add_vehicle(
+    name: str = Form(...),
+    engine: str = Form(""),
+    plate_number: str = Form(""),
+    current_mileage: int = Form(0),
+    db: Session = Depends(get_db)
+):
+    car = models.Vehicle(
+        name=name.strip(),
+        engine=engine.strip(),
+        plate_number=plate_number.strip(),
+        current_mileage=current_mileage
+    )
+    db.add(car)
+    db.commit()
+    return RedirectResponse(url="/", status_code=303)
+
+@app.post("/vehicles/{vehicle_id}/delete")
+def delete_vehicle(vehicle_id: int, db: Session = Depends(get_db)):
+    vehicle = db.query(models.Vehicle).filter(models.Vehicle.id == vehicle_id).first()
+    if vehicle:
+        db.delete(vehicle)
+        db.commit()
+    return RedirectResponse(url="/", status_code=303)
+
+# --- Управление регламентами ---
+@app.post("/vehicles/{vehicle_id}/add-rule")
+def add_rule(
+    vehicle_id: int,
+    title: str = Form(...),
+    interval_km: int = Form(...),
+    last_mileage: int = Form(...),
+    db: Session = Depends(get_db)
+):
+    rule = models.MaintenanceRule(
+        vehicle_id=vehicle_id,
+        title=title.strip(),
+        interval_km=interval_km,
+        last_mileage=last_mileage
+    )
+    db.add(rule)
+    db.commit()
+    return RedirectResponse(url="/", status_code=303)
+
+@app.post("/rules/{rule_id}/delete")
+def delete_rule(rule_id: int, db: Session = Depends(get_db)):
+    rule = db.query(models.MaintenanceRule).filter(models.MaintenanceRule.id == rule_id).first()
+    if rule:
+        db.delete(rule)
+        db.commit()
+    return RedirectResponse(url="/", status_code=303)
+
+# --- Пробег, ТО, Артикулы ---
 @app.post("/vehicles/{vehicle_id}/update-mileage")
 def update_mileage(vehicle_id: int, mileage: int = Form(...), db: Session = Depends(get_db)):
     vehicle = db.query(models.Vehicle).filter(models.Vehicle.id == vehicle_id).first()
