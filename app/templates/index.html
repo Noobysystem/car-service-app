@@ -9,8 +9,10 @@
 <body class="bg-slate-100 text-slate-900 pb-16">
     <header class="bg-slate-800 text-white p-4 shadow-md sticky top-0 z-10">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold">Гараж ТО</h1>
-            <span class="text-xs bg-slate-700 px-2 py-1 rounded font-mono">ZimaOS Host</span>
+            <h1 class="text-xl font-bold flex items-center gap-2">
+                <span>🚗</span> Гараж ТО
+            </h1>
+            <span class="text-xs bg-slate-700 px-2 py-1 rounded font-mono text-slate-300">ZimaOS Host</span>
         </div>
     </header>
 
@@ -19,21 +21,72 @@
     </div>
 
     <main class="max-w-4xl mx-auto p-4 space-y-6">
+        <!-- Виджет аналитики расходов -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Всего расходов</div>
+                <div class="text-lg sm:text-xl font-bold text-slate-800 mt-1">{{ stats.total_spent | currency }}</div>
+                <div class="text-[11px] text-slate-400 mt-0.5">за все время</div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">В {{ stats.current_year }} году</div>
+                <div class="text-lg sm:text-xl font-bold text-blue-600 mt-1">{{ stats.year_spent | currency }}</div>
+                <div class="text-[11px] text-slate-400 mt-0.5">текущий сезон</div>
+            </div>
+
+            <div class="col-span-2 sm:col-span-1 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Статус обслуживания</div>
+                <div class="flex items-center gap-2 mt-1">
+                    {% if stats.overdue_count > 0 %}
+                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-700">
+                        Просрочено: {{ stats.overdue_count }}
+                    </span>
+                    {% endif %}
+                    {% if stats.soon_count > 0 %}
+                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700">
+                        Скоро: {{ stats.soon_count }}
+                    </span>
+                    {% endif %}
+                    {% if stats.overdue_count == 0 and stats.soon_count == 0 %}
+                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-700">
+                        Все ТО в норме 👍
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="text-[11px] text-slate-400 mt-0.5">по всем 3 авто</div>
+            </div>
+        </div>
+
+        <!-- Карточки автомобилей -->
         {% for item in cars %}
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-start">
+            <!-- Шапка автомобиля -->
+            <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-800">{{ item.vehicle.name }}</h2>
-                    <span class="text-xs text-slate-500 font-mono">{{ item.vehicle.plate_number or 'Без номера' }} • {{ item.vehicle.engine }}</span>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-lg font-bold text-slate-800">{{ item.vehicle.name }}</h2>
+                        <!-- Траты по конкретной машине -->
+                        <span class="text-xs font-semibold px-2 py-0.5 bg-slate-200/80 text-slate-700 rounded" title="Всего потрачено на это авто">
+                            {{ item.total_cost | currency }}
+                        </span>
+                    </div>
+                    <div class="text-xs text-slate-500 font-mono mt-0.5">
+                        {{ item.vehicle.plate_number or 'Без номера' }} • {{ item.vehicle.engine }}
+                        {% if item.year_cost > 0 %}
+                        <span class="text-slate-400">• В {{ stats.current_year }} г.: {{ item.year_cost | currency }}</span>
+                        {% endif %}
+                    </div>
                 </div>
                 
-                <form action="/vehicles/{{ item.vehicle.id }}/update-mileage" method="POST" class="flex items-center gap-1">
+                <form action="/vehicles/{{ item.vehicle.id }}/update-mileage" method="POST" class="flex items-center gap-1 self-end sm:self-auto">
                     <input type="number" name="mileage" value="{{ item.vehicle.current_mileage }}" class="w-24 text-right px-2 py-1 border rounded text-sm font-semibold bg-white">
                     <span class="text-xs text-slate-500">км</span>
                     <button type="submit" class="text-xs bg-slate-200 hover:bg-slate-300 p-1.5 rounded transition" title="Сохранить пробег">💾</button>
                 </form>
             </div>
 
+            <!-- Регламенты -->
             <div class="p-4 space-y-3">
                 <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Состояние регламентов</h3>
                 {% for r in item.rules %}
@@ -81,6 +134,7 @@
                     {% endfor %}
                 </div>
 
+                <!-- История обслуживания -->
                 <details class="mt-4 border-t border-slate-100 pt-3">
                     <summary class="cursor-pointer text-xs font-semibold text-slate-600 hover:text-slate-900 flex justify-between items-center select-none py-1">
                         <span>📋 История обслуживания ({{ item.services|length }})</span>
@@ -100,7 +154,7 @@
                                 <div class="flex items-center justify-between sm:justify-end gap-3">
                                     {% if s.cost > 0 %}
                                     <span class="font-semibold text-slate-700 bg-white px-2 py-1 rounded border border-slate-200">
-                                        {{ "{:,.0f}".format(s.cost).replace(',', ' ') }} ₽
+                                        {{ s.cost | currency }}
                                     </span>
                                     {% endif %}
                                     <form action="/services/{{ s.id }}/delete" method="POST" onsubmit="return confirm('Удалить запись?');">
@@ -116,6 +170,7 @@
                 </details>
             </div>
 
+            <!-- Действия -->
             <div class="px-4 py-3 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
                 <button onclick="openPartsModal('{{ item.vehicle.id }}', '{{ item.vehicle.name }}')" 
                         class="text-xs font-medium text-slate-700 hover:text-slate-900 px-3.5 py-2 border border-slate-300 rounded-lg bg-white shadow-sm transition">
@@ -130,6 +185,7 @@
         {% endfor %}
     </main>
 
+    <!-- Модальное окно справочника расходников -->
     <div id="partsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
             <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
@@ -152,6 +208,7 @@
         </div>
     </div>
 
+    <!-- Модальное окно ТО -->
     <div id="serviceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-xl max-w-lg w-full overflow-hidden border border-slate-200">
             <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
