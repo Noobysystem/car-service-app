@@ -13,6 +13,9 @@
                 <span>🚗</span> Гараж ТО
             </h1>
             <div class="flex items-center gap-2">
+                <a href="/manual" class="text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1">
+                    <span>📖</span> Мануал N-WGN
+                </a>
                 <button onclick="openAddCarModal()" class="text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg shadow-sm transition">
                     + Добавить авто
                 </button>
@@ -44,19 +47,13 @@
                 <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Статус обслуживания</div>
                 <div class="flex items-center gap-2 mt-1">
                     {% if stats.overdue_count > 0 %}
-                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-700">
-                        Просрочено: {{ stats.overdue_count }}
-                    </span>
+                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-700">Просрочено: {{ stats.overdue_count }}</span>
                     {% endif %}
                     {% if stats.soon_count > 0 %}
-                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700">
-                        Скоро: {{ stats.soon_count }}
-                    </span>
+                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700">Скоро: {{ stats.soon_count }}</span>
                     {% endif %}
                     {% if stats.overdue_count == 0 and stats.soon_count == 0 %}
-                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-700">
-                        Все ТО в норме 👍
-                    </span>
+                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-700">Все ТО в норме 👍</span>
                     {% endif %}
                 </div>
                 <div class="text-[11px] text-slate-400 mt-0.5">по всем авто</div>
@@ -129,7 +126,6 @@
                     {% endfor %}
                 </template>
 
-                <!-- Блок хранения разметки расходников для модалки -->
                 <div id="parts-data-{{ item.vehicle.id }}" class="hidden">
                     {% for p in item.parts %}
                     <div class="part-item p-3 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between gap-2">
@@ -139,7 +135,7 @@
                                 {% if p.brand %}<span class="text-xs bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-medium">{{ p.brand }}</span>{% endif %}
                             </div>
                             <div class="flex items-center gap-1.5 pt-1">
-                                <button onclick="copyToClipboard('{{ p.part_number }}')" class="font-mono text-sm font-bold text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded border border-blue-300 flex items-center gap-1 transition" title="Нажмите, чтобы скопировать">
+                                <button onclick="copyToClipboard('{{ p.part_number }}')" class="font-mono text-sm font-bold text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded border border-blue-300 flex items-center gap-1 transition" title="Копировать">
                                     📋 {{ p.part_number }}
                                 </button>
                             </div>
@@ -171,9 +167,7 @@
                                 </div>
                                 <div class="flex items-center justify-between sm:justify-end gap-3">
                                     {% if s.cost > 0 %}
-                                    <span class="font-semibold text-slate-700 bg-white px-2 py-1 rounded border border-slate-200">
-                                        {{ s.cost | currency }}
-                                    </span>
+                                    <span class="font-semibold text-slate-700 bg-white px-2 py-1 rounded border border-slate-200">{{ s.cost | currency }}</span>
                                     {% endif %}
                                     <form action="/services/{{ s.id }}/delete" method="POST" onsubmit="return confirm('Удалить запись?');">
                                         <button type="submit" class="text-slate-400 hover:text-red-600 p-1 text-sm">🗑️</button>
@@ -188,11 +182,14 @@
                 </details>
             </div>
 
-            <!-- Действия -->
-            <div class="px-4 py-3 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
+            <!-- Кнопки действий: добавлена кнопка "Мануал N-WGN" прямо в карточку -->
+            <div class="px-4 py-3 bg-slate-50 border-t border-slate-100 flex flex-wrap justify-end gap-2">
+                <a href="/manual" class="text-xs font-semibold text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 px-3.5 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5">
+                    <span>📖</span> Мануал N-WGN
+                </a>
                 <button onclick="openPartsModal('{{ item.vehicle.id }}', '{{ item.vehicle.name }}')" 
                         class="text-xs font-semibold text-slate-700 hover:text-slate-900 px-3.5 py-2 border border-slate-300 rounded-lg bg-white shadow-sm transition">
-                    🔍 Каталог расходников ({{ item.parts|length }})
+                    🔍 Артикулы и расходники ({{ item.parts|length }})
                 </button>
                 <button onclick="openServiceModal('{{ item.vehicle.id }}', '{{ item.vehicle.name }}', '{{ item.vehicle.current_mileage }}')" 
                         class="text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 px-3.5 py-2 rounded-lg shadow-sm transition">
@@ -203,40 +200,33 @@
         {% endfor %}
     </main>
 
-    <!-- Модальное окно: Каталог расходников с поиском -->
+    <!-- Модальные окна (Расходники, Редактирование, ТО, Добавление) -->
     <div id="partsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-xl max-w-xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
             <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                 <h3 id="partsModalTitle" class="font-bold text-slate-800 text-base">Каталог расходников</h3>
                 <button onclick="closePartsModal()" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
             </div>
-            
-            <!-- Поисковая строка -->
             <div class="p-3 bg-slate-100/70 border-b border-slate-200">
-                <input type="text" id="partsFilterInput" oninput="filterPartsList()" placeholder="🔍 Быстрый поиск: введите 'масло', 'свечи', 'вариатор', артикул..." 
+                <input type="text" id="partsFilterInput" oninput="filterPartsList()" placeholder="🔍 Быстрый поиск: 'масло', 'свечи', 'вариатор', артикул..." 
                        class="w-full text-xs border rounded-lg p-2 bg-white border-slate-300 focus:outline-blue-500">
             </div>
-
-            <!-- Список артикулов -->
             <div id="partsListContainer" class="p-4 space-y-2.5 overflow-y-auto flex-1"></div>
-
-            <!-- Форма добавления нового артикула -->
             <form id="addPartForm" method="POST" class="p-4 border-t border-slate-200 bg-slate-50 space-y-2">
-                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider">+ Добавить новый расходник вручную</div>
+                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider">+ Добавить новый расходник</div>
                 <div class="grid grid-cols-2 gap-2">
-                    <input type="text" name="category" required placeholder="Категория (напр. Лампы)" class="text-xs border rounded p-1.5 bg-white border-slate-300">
-                    <input type="text" name="part_number" required placeholder="Артикул (напр. H4-12V)" class="text-xs border rounded p-1.5 bg-white border-slate-300 font-mono">
+                    <input type="text" name="category" required placeholder="Категория" class="text-xs border rounded p-1.5 bg-white border-slate-300">
+                    <input type="text" name="part_number" required placeholder="Артикул" class="text-xs border rounded p-1.5 bg-white border-slate-300 font-mono">
                 </div>
                 <div class="grid grid-cols-2 gap-2">
-                    <input type="text" name="brand" placeholder="Бренд (напр. Osram, OEM)" class="text-xs border rounded p-1.5 bg-white border-slate-300">
-                    <input type="text" name="description" placeholder="Примечание (цоколь, мощность)" class="text-xs border rounded p-1.5 bg-white border-slate-300">
+                    <input type="text" name="brand" placeholder="Бренд" class="text-xs border rounded p-1.5 bg-white border-slate-300">
+                    <input type="text" name="description" placeholder="Примечание" class="text-xs border rounded p-1.5 bg-white border-slate-300">
                 </div>
-                <button type="submit" class="w-full text-xs font-semibold py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded transition">Сохранить расходник</button>
+                <button type="submit" class="w-full text-xs font-semibold py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded transition">Сохранить артикул</button>
             </form>
         </div>
     </div>
 
-    <!-- Модальное окно: Редактировать регламент -->
     <div id="editRuleModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden border border-slate-200">
             <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
@@ -245,7 +235,7 @@
             </div>
             <form id="editRuleForm" method="POST" class="p-4 space-y-3">
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Название регламента *</label>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Название *</label>
                     <input type="text" id="editRuleTitle" name="title" required class="w-full text-sm border rounded-lg p-2 border-slate-300">
                 </div>
                 <div class="grid grid-cols-2 gap-2">
@@ -254,7 +244,7 @@
                         <input type="number" id="editRuleInterval" name="interval_km" required class="w-full text-sm border rounded-lg p-2 border-slate-300">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">Пробег прошлого ТО *</label>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Прошлое ТО *</label>
                         <input type="number" id="editRuleLastMileage" name="last_mileage" required class="w-full text-sm border rounded-lg p-2 border-slate-300">
                     </div>
                 </div>
@@ -266,7 +256,6 @@
         </div>
     </div>
 
-    <!-- Модальное окно: Добавить авто -->
     <div id="addCarModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden border border-slate-200">
             <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
@@ -276,11 +265,11 @@
             <form action="/vehicles/add" method="POST" class="p-4 space-y-3">
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Марка и модель *</label>
-                    <input type="text" name="name" required placeholder="Например: Toyota RAV4" class="w-full text-sm border rounded-lg p-2 border-slate-300">
+                    <input type="text" name="name" required placeholder="Например: Honda Stepwgn" class="w-full text-sm border rounded-lg p-2 border-slate-300">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Двигатель / модификация</label>
-                    <input type="text" name="engine" placeholder="Например: 2.0 Бензин 4WD" class="w-full text-sm border rounded-lg p-2 border-slate-300">
+                    <input type="text" name="engine" placeholder="1.5 Turbo CVT" class="w-full text-sm border rounded-lg p-2 border-slate-300">
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
@@ -300,7 +289,6 @@
         </div>
     </div>
 
-    <!-- Модальное окно: Добавить регламент -->
     <div id="addRuleModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden border border-slate-200">
             <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
@@ -310,7 +298,7 @@
             <form id="addRuleForm" method="POST" class="p-4 space-y-3">
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Название регламента *</label>
-                    <input type="text" name="title" required placeholder="Например: Замена тормозной жидкости" class="w-full text-sm border rounded-lg p-2 border-slate-300">
+                    <input type="text" name="title" required placeholder="Например: Замена антифриза" class="w-full text-sm border rounded-lg p-2 border-slate-300">
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
@@ -330,7 +318,6 @@
         </div>
     </div>
 
-    <!-- Модальное окно: Запись о ТО -->
     <div id="serviceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-xl max-w-lg w-full overflow-hidden border border-slate-200">
             <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
