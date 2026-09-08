@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Полное руководство Honda N-WGN Custom</title>
+    <title>Иллюстрированное руководство Honda N-WGN Custom</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         html { scroll-behavior: smooth; }
-        .manual-img { max-height: 540px; width: auto; margin: 0 auto; border-radius: 0.5rem; }
+        .manual-img { max-height: 520px; width: auto; margin: 0 auto; border-radius: 0.5rem; }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-900 pb-20">
@@ -17,7 +17,7 @@
             <div class="flex items-center gap-3">
                 <a href="/" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg transition font-medium">← В гараж</a>
                 <h1 class="text-sm sm:text-base font-bold flex items-center gap-2">
-                    <span>📖</span> Honda N-WGN / N-WGN Custom (JH1/JH2)
+                    <span>📖</span> Руководство по эксплуатации Honda N-WGN Custom (JH1/JH2)
                 </h1>
             </div>
             <span class="text-xs bg-blue-600 px-2.5 py-1 rounded font-mono text-white">0.66 S07A 4WD</span>
@@ -25,208 +25,211 @@
     </header>
 
     <div class="max-w-6xl mx-auto p-4 flex flex-col md:flex-row gap-6">
-        <!-- Навигация по всем 9 разделам мануала -->
+        <!-- Боковое меню -->
         <aside class="md:w-64 shrink-0">
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm sticky top-20 space-y-1 text-xs font-medium">
-                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">9 разделов мануала</div>
-                <a href="#sec1" class="block p-2 rounded hover:bg-slate-100 text-slate-700">1. Краткий гид по салону</a>
-                <a href="#sec2" class="block p-2 rounded hover:bg-slate-100 text-slate-700">2. Безопасность и SRS</a>
-                <a href="#sec3" class="block p-2 rounded hover:bg-slate-100 text-slate-700">3. Приборный щиток и лампы</a>
-                <a href="#sec4" class="block p-2 rounded hover:bg-slate-100 text-slate-700">4. Климат, свет, стеклоочистители</a>
-                <a href="#sec5" class="block p-2 rounded hover:bg-slate-100 text-slate-700">5. Аудиосистема и дисплей</a>
-                <a href="#sec6" class="block p-2 rounded hover:bg-slate-100 text-slate-700">6. Вариатор (CVT) и заправка</a>
-                <a href="#sec7" class="block p-2 rounded hover:bg-slate-100 text-slate-700">7. Подкапотное пространство</a>
-                <a href="#sec8" class="block p-2 rounded hover:bg-slate-100 text-slate-700">8. Аварийные ситуации и 4WD</a>
-                <a href="#sec9" class="block p-2 rounded hover:bg-slate-100 text-slate-700">9. Предохранители и спецификации</a>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm sticky top-20 space-y-1 text-xs font-medium max-h-[85vh] overflow-y-auto">
+                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Разделы руководства</div>
+                <a href="#sec1" class="block p-1.5 rounded hover:bg-slate-100 text-slate-700">1. Кокпит и общая панель</a>
+                <a href="#sec2" class="block p-1.5 rounded hover:bg-slate-100 text-slate-700">2. Кнопки на руле и лепестки</a>
+                <a href="#sec3" class="block p-1.5 rounded hover:bg-slate-100 text-slate-700">3. Нижняя консоль и рычаги</a>
+                <a href="#sec4" class="block p-1.5 rounded hover:bg-slate-100 text-slate-700">4. Безопасность и SRS</a>
+                <a href="#sec5" class="block p-1.5 rounded hover:bg-slate-100 text-slate-700">5. Приборный щиток и лампы</a>
+                <a href="#sec6" class="block p-1.5 rounded hover:bg-slate-100 text-slate-700">6. Свет, фары и часы</a>
+                <a href="#sec7" class="block p-1.5 rounded hover:bg-slate-100 text-slate-700">7. Климат-контроль (A/C)</a>
+                <a href="#sec8" class="block p-1.5 rounded hover:bg-slate-100 text-slate-700">8. Мультимедиа и дисплей</a>
+                <a href="#sec9" class="block p-1.5 rounded hover:bg-slate-100 text-slate-700">9. Вариатор (CVT) и заправка</a>
+                <a href="#sec10" class="block p-1.5 rounded hover:bg-slate-100 text-slate-700">10. Моторный отсек и жидкости</a>
+                <a href="#sec11" class="block p-1.5 rounded hover:bg-slate-100 text-slate-700">11. Аварийные ситуации и 4WD</a>
             </div>
         </aside>
 
-        <!-- Контент мануала -->
+        <!-- Основной контент -->
         <main class="flex-1 space-y-8">
-            <!-- Поиск -->
             <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm sticky top-16 z-20">
-                <input type="text" id="manualSearch" oninput="filterManual()" placeholder="🔍 Поиск по мануалу (напр. 'CTBA', 'масло', 'сброс', 'вариатор', 'буксировка')..." 
+                <input type="text" id="manualSearch" oninput="filterManual()" placeholder="🔍 Поиск по мануалу ('масло', 'CTBA', 'сброс', 'вариатор', 'буксировка', 'предохранитель')..." 
                        class="w-full text-xs sm:text-sm border rounded-lg p-2.5 bg-slate-50 border-slate-300 focus:outline-blue-500">
             </div>
 
             <!-- Раздел 1 -->
             <section id="sec1" class="manual-section bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-4">
                 <h2 class="text-base font-bold text-slate-800 border-b pb-2 flex items-center gap-2">
-                    <span>🧭</span> 1. Краткий гид по салону и органам управления (クイックガイド)
+                    <span>🧭</span> 1. Кокпит и общая панель приборов
                 </h2>
                 <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-center">
-                    <img src="/static/manual_img/sec1_cockpit.png" alt="Кокпит Honda N-WGN" class="manual-img">
+                    <img src="/static/manual_img/sec1_cockpit.png" alt="Кокпит Honda N-WGN с русскими обозначениями" class="manual-img">
                 </div>
-                <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-center">
-                    <img src="/static/manual_img/sec1_steering.png" alt="Рулевое колесо N-WGN" class="manual-img">
-                </div>
-                <div class="grid sm:grid-cols-2 gap-3 text-xs text-slate-700">
-                    <div class="p-3 bg-slate-50 border rounded-lg">
-                        <b>Кнопка CTBA OFF:</b> Отключение системы активного торможения на малых скоростях (рекомендуется выключать на мойках).
-                    </div>
-                    <div class="p-3 bg-slate-50 border rounded-lg">
-                        <b>Кнопка VSA OFF:</b> Отключение антипробуксовочной системы для выезда из сугробов враскачку.
-                    </div>
-                    <div class="p-3 bg-slate-50 border rounded-lg">
-                        <b>Подрулевые лепестки (+/-):</b> 7-ступенчатый ручной режим вариатора для активного разгона или торможения двигателем.
-                    </div>
-                    <div class="p-3 bg-slate-50 border rounded-lg">
-                        <b>Корректор фар (0-3):</b> Регулировка угла наклона светового пучка в зависимости от количества пассажиров и загрузки багажника.
-                    </div>
+                <div class="grid sm:grid-cols-2 gap-2 text-xs text-slate-700">
+                    <div class="p-2.5 bg-slate-50 border rounded-lg"><b>CTBA OFF:</b> Отключение лазерного радара предотвращения столкновений.</div>
+                    <div class="p-2.5 bg-slate-50 border rounded-lg"><b>VSA OFF:</b> Отключение антипробуксовочной системы для выезда из сугробов.</div>
+                    <div class="p-2.5 bg-slate-50 border rounded-lg"><b>Дефростер стекла:</b> Принудительный обдув лобового стекла с забором наружного воздуха.</div>
+                    <div class="p-2.5 bg-slate-50 border rounded-lg"><b>Корректор фар:</b> Регулировка наклона фар в зависимости от нагрузки салона.</div>
                 </div>
             </section>
 
             <!-- Раздел 2 -->
             <section id="sec2" class="manual-section bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-4">
                 <h2 class="text-base font-bold text-slate-800 border-b pb-2 flex items-center gap-2">
-                    <span>🛡️</span> 2. Безопасность: ремни, подушки SRS и дети (安全なドライブ)
+                    <span>🏎️</span> 2. Кнопки на рулевом колесе и подрулевые лепестки
                 </h2>
                 <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-center">
-                    <img src="/static/manual_img/sec2_safety_belts.png" alt="Ремни безопасности и посадка" class="manual-img">
+                    <img src="/static/manual_img/sec2_steering.png" alt="Руль Honda N-WGN" class="manual-img">
                 </div>
-                <div class="space-y-2 text-xs text-slate-700">
-                    <p><b>Фронтальные подушки SRS:</b> Водительская в руле, пассажирская в передней панели. Срабатывают при фронтальном ударе на скорости свыше 20-30 км/ч.</p>
-                    <p><b>Боковые подушки и шторки:</b> Расположены в спинках сидений и потолочных рейлингах для защиты головы и грудной клетки при боковых ударах.</p>
-                    <p><b>Крепления ISOFIX и TopTether:</b> Установлены на заднем ряду сидений. Установка детского кресла против хода движения на переднее сиденье запрещена из-за активной подушки безопасности.</p>
+                <div class="text-xs text-slate-700 space-y-2">
+                    <p><b>Лепестки подрулевого переключения (- / +):</b> Активируют 7-ступенчатый ручной режим вариатора. Нажатие лепестка (-) обеспечивает эффективное торможение двигателем на затяжных спусках.</p>
+                    <p><b>SEL / RESET:</b> Переключение экранов бортового компьютера (общий пробег, одометры Trip A/B, мгновенный и средний расход топлива, остаточный ресурс масла).</p>
+                    <p><b>Круиз-контроль (CRUISE MAIN / SET / RES):</b> Поддержание заданной скорости на загородных трассах без нажатия педали акселератора.</p>
                 </div>
             </section>
 
             <!-- Раздел 3 -->
             <section id="sec3" class="manual-section bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-4">
                 <h2 class="text-base font-bold text-slate-800 border-b pb-2 flex items-center gap-2">
-                    <span>⚡</span> 3. Приборный щиток, дисплей и контрольные лампы (計器の見かた)
+                    <span>🔘</span> 3. Нижняя консоль, сервисные рычаги и предохранители
                 </h2>
                 <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-center">
-                    <img src="/static/manual_img/sec3_dashboard_custom.png" alt="Приборная панель Custom" class="manual-img">
+                    <img src="/static/manual_img/sec3_lower_dash.png" alt="Нижняя консоль и рычаги" class="manual-img">
                 </div>
-                <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-center">
-                    <img src="/static/manual_img/sec3_indicators.png" alt="Контрольные лампы" class="manual-img">
-                </div>
-                <div class="space-y-3 text-xs text-slate-700">
-                    <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                        <b class="text-amber-900">Сброс индикатора замены масла (значок гаечного ключа):</b>
-                        <p class="mt-1 text-slate-600">Лампа мигает при запуске через 4 500 км, горит постоянно через 5 000 км. Для сброса переведите зажигание в ON, кнопкой SEL/RESET на приборной панели выберите экран остатка масла, зажмите SEL/RESET на 10 секунд до мигания счетчика, отпустите и зажмите повторно на 5 секунд до сброса на исходные 5 000 км.</p>
-                    </div>
-                    <div class="grid sm:grid-cols-2 gap-2 text-xs">
-                        <div class="p-2.5 bg-slate-50 border rounded-lg"><b>Синий индикатор ОЖ:</b> Температура антифриза ниже 55°C (двигатель не прогрет).</div>
-                        <div class="p-2.5 bg-slate-50 border rounded-lg"><b>Красный индикатор ОЖ:</b> Перегрев двигателя (срочно заглушить и проверить уровень ОЖ).</div>
-                        <div class="p-2.5 bg-slate-50 border rounded-lg"><b>KEY BATT:</b> Села батарейка в смарт-ключе (CR1632 или CR2032).</div>
-                        <div class="p-2.5 bg-slate-50 border rounded-lg"><b>NO KEY:</b> Смарт-ключ покинул салон заведенного автомобиля.</div>
-                    </div>
+                <div class="text-xs text-slate-700 space-y-2">
+                    <p><b>Рычаг капота:</b> Расположен в глубине под рулевой колонкой над площадкой левой ноги.</p>
+                    <p><b>Рычаг лючка бензобака:</b> Расположен на передней панели слева внизу около водительской двери.</p>
+                    <p><b>Блок предохранителей в салоне:</b> Находится под рулевой колонкой за нижней пластиковой крышкой.</p>
                 </div>
             </section>
 
             <!-- Раздел 4 -->
             <section id="sec4" class="manual-section bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-4">
                 <h2 class="text-base font-bold text-slate-800 border-b pb-2 flex items-center gap-2">
-                    <span>❄️</span> 4. Климат-контроль, освещение и стеклоочистители (各部の操作)
+                    <span>🛡️</span> 4. Безопасность: ремни, подушки SRS и детские кресла
                 </h2>
                 <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-center">
-                    <img src="/static/manual_img/sec4_climate.png" alt="Блок климат-контроля" class="manual-img">
+                    <img src="/static/manual_img/sec4_safety.png" alt="Ремни и детские кресла" class="manual-img">
                 </div>
-                <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-center">
-                    <img src="/static/manual_img/sec4_lights_wiper.png" alt="Свет и омыватели" class="manual-img">
-                </div>
-                <div class="space-y-2 text-xs text-slate-700">
-                    <p><b>Дефростер (FRONT):</b> Экстренный обдув ветрового стекла. Автоматически переключает забор воздуха на наружный и включает кондиционер A/C.</p>
-                    <p><b>Обогрев зеркал и стекла (REAR):</b> Электрообогрев стекла пятой двери и боковых зеркал. Автоматически выключается через 15–20 минут.</p>
-                    <p><b>Дворники:</b> Режим INT — прерывистый с регулировкой паузы, LO — непрерывный, HI — максимальная скорость. Омыватель — рычаг на себя.</p>
+                <div class="text-xs text-slate-700 space-y-2">
+                    <p><b>Подушки SRS:</b> Фронтальные (водитель/пассажир), боковые в спинках сидений и шторки на окнах. Срабатывают при ударе на скорости выше 20-30 км/ч.</p>
+                    <p><b>Детские автокресла:</b> Устанавливаются строго на заднем ряду сидений с помощью скоб <b>ISOFIX</b> и верхнего страховочного ремня TopTether. Установка люльки спиной вперед на переднее сиденье запрещена.</p>
                 </div>
             </section>
 
             <!-- Раздел 5 -->
             <section id="sec5" class="manual-section bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-4">
                 <h2 class="text-base font-bold text-slate-800 border-b pb-2 flex items-center gap-2">
-                    <span>📻</span> 5. Мультимедиа и подключение устройств (オーディオ)
+                    <span>⚡</span> 5. Приборный щиток Custom и контрольные лампы
                 </h2>
                 <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-center">
-                    <img src="/static/manual_img/sec5_audio.png" alt="Аудиосистема" class="manual-img">
+                    <img src="/static/manual_img/sec5_cluster.png" alt="Щиток приборов Custom" class="manual-img">
                 </div>
-                <div class="text-xs text-slate-700 space-y-2">
-                    <p><b>Bluetooth Hands-Free:</b> Сопряжение телефона через меню Setting -> Phone -> Bluetooth Device List. Позволяет совершать звонки по громкой связи кнопками на руле.</p>
-                    <p><b>Разъемы USB / HDMI:</b> Расположены в нижней нише передней панели. Поддерживают чтение флешек FAT32 и вывод изображения на штатный экран (только на стоянке с затянутым ручником).</p>
+                <div class="space-y-3 text-xs text-slate-700">
+                    <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <b class="text-amber-900">Сброс индикатора замены масла (значок гаечного ключа):</b>
+                        <p class="mt-1 text-slate-600">Начинает мигать через 4 500 км, горит постоянно через 5 000 км. <b>Инструкция по сбросу:</b> Включите зажигание (ON), короткими нажатиями кнопки SEL/RESET переключите дисплей на счетчик ресурса масла. Удерживайте кнопку нажатой около 10 секунд до начала мигания цифр, отпустите и зажмите снова на 5 секунд до сброса на исходные 5 000 км.</p>
+                    </div>
+                    <div class="grid sm:grid-cols-2 gap-2 text-xs">
+                        <div class="p-2.5 bg-slate-50 border rounded-lg"><b>Синий индикатор ОЖ:</b> Температура антифриза ниже 55°C (прогрев).</div>
+                        <div class="p-2.5 bg-slate-50 border rounded-lg"><b>Красный индикатор ОЖ:</b> ПЕРЕГРЕВ. Заглушить мотор и проверить ОЖ.</div>
+                        <div class="p-2.5 bg-slate-50 border rounded-lg"><b>KEY BATT:</b> Села батарейка в смарт-ключе (CR1632/CR2032).</div>
+                        <div class="p-2.5 bg-slate-50 border rounded-lg"><b>CTBA (мигает):</b> Загрязнено лобовое стекло перед лазерным радаром.</div>
+                    </div>
                 </div>
             </section>
 
             <!-- Раздел 6 -->
             <section id="sec6" class="manual-section bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-4">
                 <h2 class="text-base font-bold text-slate-800 border-b pb-2 flex items-center gap-2">
-                    <span>🕹️</span> 6. Вариатор (CVT) и заправка (運転)
+                    <span>💡</span> 6. Освещение, поворотники и настройка часов
                 </h2>
                 <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-center">
-                    <img src="/static/manual_img/sec6_cvt.png" alt="Селектор вариатора" class="manual-img">
+                    <img src="/static/manual_img/sec6_lights.png" alt="Свет и настройка часов" class="manual-img">
                 </div>
-                <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-center">
-                    <img src="/static/manual_img/sec6_fuel.png" alt="Лючок бензобака" class="manual-img">
-                </div>
-                <div class="space-y-2 text-xs text-slate-700">
-                    <p><b>D (Drive):</b> Стандартный режим движения. При включенном зеленом листке (ECON) сглаживает отклик педали газа для экономии топлива.</p>
-                    <p><b>S (Sport):</b> Держит повышенные обороты мотора, обеспечивает динамичное ускорение и интенсивное торможение двигателем на спусках.</p>
-                    <p><b>L (Low):</b> Максимальная тяга для крутых подъемов и выезда из глубокого снега или грязи.</p>
-                    <p><b>Заправка:</b> Бак 30 литров. Бензин Regular (АИ-92 / АИ-95). Рычаг открывания лючка — слева под приборной панелью у водительской двери.</p>
+                <div class="text-xs text-slate-700 space-y-2">
+                    <p><b>Подрулевой переключатель света:</b> Положение AUTO включает автосвет по датчику освещенности. Кольцо противотуманных фар работает при включенных габаритах или ближнем свете.</p>
+                    <p><b>Настройка часов:</b> Нажмите кнопку HOME на штатном дисплее -> Настройки -> Настройки дисплея -> Настройка времени.</p>
                 </div>
             </section>
 
             <!-- Раздел 7 -->
             <section id="sec7" class="manual-section bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-4">
                 <h2 class="text-base font-bold text-slate-800 border-b pb-2 flex items-center gap-2">
-                    <span>🔧</span> 7. Подкапотное пространство и точки проверки (メンテナンス)
+                    <span>❄️</span> 7. Климат-контроль и очистка стекол (A/C)
                 </h2>
                 <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-center">
-                    <img src="/static/manual_img/sec7_engine_bay.png" alt="Подкапотное пространство" class="manual-img">
+                    <img src="/static/manual_img/sec7_climate.png" alt="Климат-контроль N-WGN" class="manual-img">
                 </div>
-                <div class="space-y-2 text-xs text-slate-700">
-                    <p><b>Масло ДВС (оранжевое кольцо):</b> Проверяется через 3-5 минут после глушения прогретого мотора. Заливка: 2.6 л с фильтром (Honda Ultra LEO 0W-20 SP).</p>
-                    <p><b>Щуп вариатора:</b> Проверяется на прогретой коробке на холостом ходу. Заливка: только Honda Ultra HCF-2 (~2.4–2.6 л).</p>
-                    <p><b>Охлаждающая жидкость:</b> Синий антифриз Honda Type 2. Расширительный бачок находится в передней части моторного отсека.</p>
-                    <p><b>Бачок омывателя:</b> Крышка с изображением стеклоочистителя у правой фары.</p>
+                <div class="text-xs text-slate-700 space-y-2">
+                    <p><b>AUTO:</b> Полностью автоматический режим температуры и скорости обдува.</p>
+                    <p><b>FRONT:</b> Кнопка быстрого удаления запотевания ветрового стекла. Автоматически включает компрессор кондиционера и подачу наружного воздуха.</p>
+                    <p><b>MODE:</b> Выбор направления потока (в лицо, в лицо и ноги, только в ноги, в ноги и на стекло).</p>
                 </div>
             </section>
 
             <!-- Раздел 8 -->
             <section id="sec8" class="manual-section bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-4">
                 <h2 class="text-base font-bold text-slate-800 border-b pb-2 flex items-center gap-2">
-                    <span>🚨</span> 8. Аварийные ситуации и правила 4WD (万一の場合には)
+                    <span>📻</span> 8. Мультимедиа, дисплей и Bluetooth
                 </h2>
                 <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-center">
-                    <img src="/static/manual_img/sec8_emergency.png" alt="Аварийный запуск" class="manual-img">
+                    <img src="/static/manual_img/sec8_audio.png" alt="Штатный экран мультимедиа" class="manual-img">
                 </div>
-                <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-center">
-                    <img src="/static/manual_img/sec8_towing.png" alt="Правила буксировки" class="manual-img">
-                </div>
-                <div class="space-y-3 text-xs text-slate-700">
-                    <div class="p-3 bg-red-50 border border-red-200 rounded-lg text-red-950">
-                        <b>СТРОГОЕ ПРАВИЛО БУКСИРОВКИ ДЛЯ 4WD:</b>
-                        <p class="mt-1">Для версии с полным приводом (4WD) буксировка на гибкой сцепке с вращением задних колес по земле или методом частичной погрузки <b>КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНА</b>. Это разрушает гидравлическую муфту заднего дифференциала. Эвакуация разрешена <b>только методом полной погрузки на платформу</b>.</p>
-                    </div>
-                    <div class="p-3 bg-slate-50 border rounded-lg">
-                        <b>Запуск при севшей батарейке смарт-ключа:</b>
-                        <ol class="list-decimal pl-5 mt-1 space-y-1 text-slate-600">
-                            <li>Выжмите педаль тормоза.</li>
-                            <li>Прикоснитесь задней стороной брелока (эмблемой Honda) вплотную к кнопке ENGINE START/STOP.</li>
-                            <li>После звукового сигнала зуммера нажмите кнопку Start/Stop в течение 10 секунд.</li>
-                        </ol>
-                    </div>
+                <div class="text-xs text-slate-700 space-y-2">
+                    <p><b>Подключение телефона (Bluetooth):</b> Меню Setting -> Phone -> Bluetooth Device List -> Поиск телефона. Поддерживает воспроизведение музыки и звонки по громкой связи.</p>
+                    <p><b>Разъемы USB / HDMI:</b> Поддерживают флеш-накопители с файловой системой FAT32 (музыка MP3/WMA/AAC).</p>
                 </div>
             </section>
 
             <!-- Раздел 9 -->
             <section id="sec9" class="manual-section bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-4">
                 <h2 class="text-base font-bold text-slate-800 border-b pb-2 flex items-center gap-2">
-                    <span>⚡</span> 9. Предохранители и технические спецификации (資料)
+                    <span>🕹️</span> 9. Вариатор (CVT), режимы движения и заправка
                 </h2>
-                <div class="space-y-3 text-xs text-slate-700 leading-relaxed">
-                    <p><b>Блок предохранителей в салоне:</b> Расположен под рулевой колонкой слева от педального узла.</p>
-                    <p><b>Блок предохранителей под капотом:</b> Рядом с аккумулятором с пластиковой защитной крышкой.</p>
-                    <div class="grid sm:grid-cols-2 gap-3 pt-1">
-                        <div class="p-3 bg-slate-50 border rounded-lg">
-                            <span class="font-bold">Шины и давление:</span>
-                            <p class="text-slate-600 mt-0.5">155/65R14 или 165/55R15. Давление в передних и задних шинах: <b>2.4 бар (240 кПа)</b>.</p>
-                        </div>
-                        <div class="p-3 bg-slate-50 border rounded-lg">
-                            <span class="font-bold">Тип аккумулятора:</span>
-                            <p class="text-slate-600 mt-0.5">Типоразмер <b>M-42R (EFB)</b> под систему Idling Stop.</p>
-                        </div>
+                <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-center">
+                    <img src="/static/manual_img/sec9_cvt.png" alt="Селектор вариатора CVT" class="manual-img">
+                </div>
+                <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-center">
+                    <img src="/static/manual_img/sec9_fuel.png" alt="Лючок бензобака" class="manual-img">
+                </div>
+                <div class="text-xs text-slate-700 space-y-2">
+                    <p><b>Режим D (Drive):</b> Стандартный режим. Зеленый листок (ECON) обеспечивает плавный отклик дросселя и снижает расход бензина.</p>
+                    <p><b>Режим S (Sport):</b> Поддерживает более высокие обороты мотора для активной езды и торможения двигателем.</p>
+                    <p><b>Режим L (Low):</b> Пониженная передача для крутых подъемов, глубокого снега и вязкой грязи.</p>
+                    <p><b>Заправка:</b> Бак 30 литров. Бензин АИ-92 / 95 (Regular). Рычаг открывания — слева под панелью у двери.</p>
+                </div>
+            </section>
+
+            <!-- Раздел 10 -->
+            <section id="sec10" class="manual-section bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-4">
+                <h2 class="text-base font-bold text-slate-800 border-b pb-2 flex items-center gap-2">
+                    <span>🔧</span> 10. Моторный отсек и заправочные жидкости
+                </h2>
+                <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-center">
+                    <img src="/static/manual_img/sec10_engine.png" alt="Подкапотное пространство" class="manual-img">
+                </div>
+                <div class="text-xs text-slate-700 space-y-2">
+                    <p><b>Масло ДВС (оранжевое кольцо щупа):</b> Проверяется на прогретом моторе через 3-5 мин после остановки. Заливка: <b>2.6 л</b> с фильтром (Honda Ultra LEO 0W-20 SP).</p>
+                    <p><b>Щуп вариатора:</b> Проверяется на полностью прогретой коробке на холостом ходу. Жидкость: строго <b>Honda Ultra HCF-2</b> (частичная замена 2.4–2.6 л).</p>
+                    <p><b>Антифриз:</b> Синий оригинальный антифриз Honda Long Life Coolant Type 2. Расширительный бачок спереди за радиатором.</p>
+                    <p><b>Аккумулятор:</b> Типоразмер <b>M-42R (EFB)</b>, необходим для корректной работы системы Idling Stop.</p>
+                </div>
+            </section>
+
+            <!-- Раздел 11 -->
+            <section id="sec11" class="manual-section bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-4">
+                <h2 class="text-base font-bold text-slate-800 border-b pb-2 flex items-center gap-2">
+                    <span>🚨</span> 11. Аварийные ситуации, пуск без ключа и правила 4WD
+                </h2>
+                <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-center">
+                    <img src="/static/manual_img/sec11_emergency.png" alt="Аварийные ситуации и пуск" class="manual-img">
+                </div>
+                <div class="space-y-3 text-xs text-slate-700">
+                    <div class="p-3 bg-red-50 border border-red-200 rounded-lg text-red-950">
+                        <b>ПРАВИЛО БУКСИРОВКИ ДЛЯ 4WD:</b>
+                        <p class="mt-1">Для полноприводной Honda N-WGN (4WD) буксировка на гибкой сцепке с вращением задних колес по земле или методом частичной погрузки <b>ЗАПРЕЩЕНА</b> (разрушается муфта DPSF заднего редуктора). Эвакуация разрешена <b>только полной погрузкой на платформу эвакуатора</b>.</p>
+                    </div>
+                    <div class="p-3 bg-slate-50 border rounded-lg">
+                        <b>Пуск мотора при севшей батарейке смарт-ключа:</b>
+                        <ol class="list-decimal pl-5 mt-1 space-y-1 text-slate-600">
+                            <li>Нажмите и удерживайте педаль тормоза.</li>
+                            <li>Прикоснитесь задней стороной брелока (логотипом Honda) вплотную к кнопке ENGINE START/STOP.</li>
+                            <li>После звукового сигнала зуммера («пип») нажмите кнопку Start/Stop в течение 10 секунд.</li>
+                        </ol>
                     </div>
                 </div>
             </section>
