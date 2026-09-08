@@ -14,10 +14,13 @@
         </div>
     </header>
 
+    <div id="toast" class="fixed bottom-4 right-4 bg-slate-800 text-white px-4 py-2 rounded-lg shadow-lg text-xs font-medium transition-opacity duration-300 opacity-0 pointer-events-none z-50">
+        Артикул скопирован в буфер!
+    </div>
+
     <main class="max-w-4xl mx-auto p-4 space-y-6">
         {% for item in cars %}
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <!-- Шапка автомобиля -->
             <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-start">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">{{ item.vehicle.name }}</h2>
@@ -31,7 +34,6 @@
                 </form>
             </div>
 
-            <!-- Регламенты -->
             <div class="p-4 space-y-3">
                 <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Состояние регламентов</h3>
                 {% for r in item.rules %}
@@ -50,7 +52,6 @@
                 </div>
                 {% endfor %}
 
-                <!-- Шаблоны опций для модалки -->
                 <template id="rules-{{ item.vehicle.id }}">
                     <option value="">-- Без сброса регламента (разовый ремонт/прочее) --</option>
                     {% for r in item.rules %}
@@ -58,7 +59,28 @@
                     {% endfor %}
                 </template>
 
-                <!-- Раскрывающийся блок: История обслуживания -->
+                <div id="parts-data-{{ item.vehicle.id }}" class="hidden">
+                    {% for p in item.parts %}
+                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between gap-2">
+                        <div class="space-y-0.5">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-slate-800 text-xs">{{ p.category }}</span>
+                                {% if p.brand %}<span class="text-xs bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded">{{ p.brand }}</span>{% endif %}
+                            </div>
+                            <div class="flex items-center gap-1.5 pt-1">
+                                <button onclick="copyToClipboard('{{ p.part_number }}')" class="font-mono text-sm font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-0.5 rounded border border-blue-200 flex items-center gap-1" title="Копировать">
+                                    📋 {{ p.part_number }}
+                                </button>
+                            </div>
+                            {% if p.description %}<p class="text-xs text-slate-500 pt-0.5">{{ p.description }}</p>{% endif %}
+                        </div>
+                        <form action="/parts/{{ p.id }}/delete" method="POST" onsubmit="return confirm('Удалить артикул?');">
+                            <button type="submit" class="text-slate-400 hover:text-red-600 p-1 text-sm">🗑️</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+
                 <details class="mt-4 border-t border-slate-100 pt-3">
                     <summary class="cursor-pointer text-xs font-semibold text-slate-600 hover:text-slate-900 flex justify-between items-center select-none py-1">
                         <span>📋 История обслуживания ({{ item.services|length }})</span>
@@ -81,21 +103,24 @@
                                         {{ "{:,.0f}".format(s.cost).replace(',', ' ') }} ₽
                                     </span>
                                     {% endif %}
-                                    <form action="/services/{{ s.id }}/delete" method="POST" onsubmit="return confirm('Удалить эту запись из истории?');">
-                                        <button type="submit" class="text-slate-400 hover:text-red-600 p-1 text-sm" title="Удалить">🗑️</button>
+                                    <form action="/services/{{ s.id }}/delete" method="POST" onsubmit="return confirm('Удалить запись?');">
+                                        <button type="submit" class="text-slate-400 hover:text-red-600 p-1 text-sm">🗑️</button>
                                     </form>
                                 </div>
                             </div>
                             {% endfor %}
                         {% else %}
-                            <p class="text-xs text-slate-400 italic py-2">Записей о работах пока нет.</p>
+                            <p class="text-xs text-slate-400 italic py-2">Записей пока нет.</p>
                         {% endif %}
                     </div>
                 </details>
             </div>
 
-            <!-- Кнопки действий -->
             <div class="px-4 py-3 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
+                <button onclick="openPartsModal('{{ item.vehicle.id }}', '{{ item.vehicle.name }}')" 
+                        class="text-xs font-medium text-slate-700 hover:text-slate-900 px-3.5 py-2 border border-slate-300 rounded-lg bg-white shadow-sm transition">
+                    🔍 Артикулы и расходники ({{ item.parts|length }})
+                </button>
                 <button onclick="openServiceModal('{{ item.vehicle.id }}', '{{ item.vehicle.name }}', '{{ item.vehicle.current_mileage }}')" 
                         class="text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 px-3.5 py-2 rounded-lg shadow-sm transition">
                     + Запись о ТО
@@ -105,55 +130,64 @@
         {% endfor %}
     </main>
 
-    <!-- Модальное окно добавления записи о ТО -->
+    <div id="partsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
+            <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                <h3 id="partsModalTitle" class="font-bold text-slate-800 text-base">Артикулы и расходники</h3>
+                <button onclick="closePartsModal()" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+            </div>
+            <div id="partsListContainer" class="p-4 space-y-2.5 overflow-y-auto flex-1"></div>
+            <form id="addPartForm" method="POST" class="p-4 border-t border-slate-200 bg-slate-50 space-y-2">
+                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider">+ Добавить деталь / жидкость</div>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" name="category" required placeholder="Категория" class="text-xs border rounded p-1.5 bg-white border-slate-300">
+                    <input type="text" name="part_number" required placeholder="Артикул" class="text-xs border rounded p-1.5 bg-white border-slate-300 font-mono">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" name="brand" placeholder="Бренд" class="text-xs border rounded p-1.5 bg-white border-slate-300">
+                    <input type="text" name="description" placeholder="Примечание" class="text-xs border rounded p-1.5 bg-white border-slate-300">
+                </div>
+                <button type="submit" class="w-full text-xs font-semibold py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded transition">Сохранить артикул</button>
+            </form>
+        </div>
+    </div>
+
     <div id="serviceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-xl max-w-lg w-full overflow-hidden border border-slate-200">
             <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                 <h3 id="modalCarTitle" class="font-bold text-slate-800 text-base">Новая запись ТО</h3>
-                <button onclick="closeServiceModal()" class="text-slate-400 hover:text-slate-600 text-lg leading-none">&times;</button>
+                <button onclick="closeServiceModal()" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
             </div>
-            
             <form id="serviceForm" method="POST" class="p-4 space-y-3.5">
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Связать с регламентом (для сброса интервала)</label>
-                    <select id="modalRuleSelect" name="rule_id" onchange="onRuleSelectChange()" class="w-full text-sm border rounded-lg p-2 bg-slate-50 border-slate-300">
-                    </select>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Связать с регламентом</label>
+                    <select id="modalRuleSelect" name="rule_id" onchange="onRuleSelectChange()" class="w-full text-sm border rounded-lg p-2 bg-slate-50 border-slate-300"></select>
                 </div>
-
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Название работы / операции *</label>
-                    <input type="text" id="modalTitle" name="title" required placeholder="Например: Замена моторного масла и фильтра" 
-                           class="w-full text-sm border rounded-lg p-2 border-slate-300 focus:outline-blue-500">
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Название операции *</label>
+                    <input type="text" id="modalTitle" name="title" required class="w-full text-sm border rounded-lg p-2 border-slate-300">
                 </div>
-
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">Пробег при выполнении *</label>
-                        <input type="number" id="modalMileage" name="mileage" required 
-                               class="w-full text-sm border rounded-lg p-2 border-slate-300">
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Пробег *</label>
+                        <input type="number" id="modalMileage" name="mileage" required class="w-full text-sm border rounded-lg p-2 border-slate-300">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1">Дата</label>
-                        <input type="date" name="service_date" value="{{ today }}" 
-                               class="w-full text-sm border rounded-lg p-2 border-slate-300">
+                        <input type="date" name="service_date" value="{{ today }}" class="w-full text-sm border rounded-lg p-2 border-slate-300">
                     </div>
                 </div>
-
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Стоимость (запчасти + работа), ₽</label>
-                    <input type="number" step="0.1" name="cost" value="0" 
-                           class="w-full text-sm border rounded-lg p-2 border-slate-300">
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Стоимость, ₽</label>
+                    <input type="number" step="0.1" name="cost" value="0" class="w-full text-sm border rounded-lg p-2 border-slate-300">
                 </div>
-
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Заметки / артикулы запчастей / сервис</label>
-                    <textarea name="notes" rows="2" placeholder="Бренд масла, вязкость, каталожные номера..." 
-                              class="w-full text-sm border rounded-lg p-2 border-slate-300"></textarea>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Заметки / сервис</label>
+                    <textarea name="notes" rows="2" class="w-full text-sm border rounded-lg p-2 border-slate-300"></textarea>
                 </div>
-
                 <div class="pt-2 flex justify-end gap-2 border-t border-slate-100">
                     <button type="button" onclick="closeServiceModal()" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg">Отмена</button>
-                    <button type="submit" class="px-4 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm">Сохранить запись</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm">Сохранить</button>
                 </div>
             </form>
         </div>
@@ -164,26 +198,38 @@
             document.getElementById('serviceForm').action = `/vehicles/${carId}/add-service`;
             document.getElementById('modalCarTitle').textContent = `Запись ТО: ${carName}`;
             document.getElementById('modalMileage').value = currentMileage;
-            
             const select = document.getElementById('modalRuleSelect');
             const template = document.getElementById(`rules-${carId}`);
             select.innerHTML = template.innerHTML;
             document.getElementById('modalTitle').value = '';
-            
             document.getElementById('serviceModal').classList.remove('hidden');
         }
-
-        function closeServiceModal() {
-            document.getElementById('serviceModal').classList.add('hidden');
-        }
-
+        function closeServiceModal() { document.getElementById('serviceModal').classList.add('hidden'); }
         function onRuleSelectChange() {
             const select = document.getElementById('modalRuleSelect');
             const selectedOpt = select.options[select.selectedIndex];
             const ruleTitle = selectedOpt.getAttribute('data-title');
-            if (ruleTitle) {
-                document.getElementById('modalTitle').value = ruleTitle;
-            }
+            if (ruleTitle) document.getElementById('modalTitle').value = ruleTitle;
+        }
+        function openPartsModal(carId, carName) {
+            document.getElementById('partsModalTitle').textContent = `Расходники: ${carName}`;
+            document.getElementById('addPartForm').action = `/vehicles/${carId}/add-part`;
+            const partsData = document.getElementById(`parts-data-${carId}`).innerHTML;
+            const container = document.getElementById('partsListContainer');
+            container.innerHTML = partsData.trim() ? partsData : '<p class="text-xs text-slate-400 italic py-4 text-center">Список артикулов пока пуст.</p>';
+            document.getElementById('partsModal').classList.remove('hidden');
+        }
+        function closePartsModal() { document.getElementById('partsModal').classList.add('hidden'); }
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.getElementById('toast');
+                toast.classList.remove('opacity-0');
+                toast.classList.add('opacity-100');
+                setTimeout(() => {
+                    toast.classList.remove('opacity-100');
+                    toast.classList.add('opacity-0');
+                }, 2000);
+            });
         }
     </script>
 </body>
