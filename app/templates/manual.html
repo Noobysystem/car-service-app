@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Иллюстрированное руководство Honda N-WGN Custom</title>
+    <title>Руководство Honda N-WGN Custom</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         html { scroll-behavior: smooth; }
@@ -11,13 +11,12 @@
     </style>
 </head>
 <body class="bg-slate-100 text-slate-900 pb-20">
-    <!-- Шапка -->
     <header class="bg-slate-800 text-white p-4 shadow-md sticky top-0 z-30">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <a href="/" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg transition font-medium">← В гараж</a>
                 <h1 class="text-sm sm:text-base font-bold flex items-center gap-2">
-                    <span>📖</span> Руководство по эксплуатации Honda N-WGN Custom (JH1/JH2)
+                    <span>📖</span> Honda N-WGN Custom (JH1/JH2)
                 </h1>
             </div>
             <span class="text-xs bg-blue-600 px-2.5 py-1 rounded font-mono text-white">0.66 S07A 4WD</span>
@@ -28,7 +27,8 @@
         <!-- Боковое меню -->
         <aside class="md:w-64 shrink-0">
             <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm sticky top-20 space-y-1 text-xs font-medium max-h-[85vh] overflow-y-auto">
-                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Разделы руководства</div>
+                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Навигация по мануалу</div>
+                <a href="#sec_fuses" class="block p-2 rounded bg-amber-50 text-amber-900 font-bold border border-amber-200">⚡ Блоки предохранителей</a>
                 <a href="#sec1" class="block p-1.5 rounded hover:bg-slate-100 text-slate-700">1. Кокпит и общая панель</a>
                 <a href="#sec2" class="block p-1.5 rounded hover:bg-slate-100 text-slate-700">2. Кнопки на руле и лепестки</a>
                 <a href="#sec3" class="block p-1.5 rounded hover:bg-slate-100 text-slate-700">3. Нижняя консоль и рычаги</a>
@@ -46,9 +46,237 @@
         <!-- Основной контент -->
         <main class="flex-1 space-y-8">
             <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm sticky top-16 z-20">
-                <input type="text" id="manualSearch" oninput="filterManual()" placeholder="🔍 Поиск по мануалу ('масло', 'CTBA', 'сброс', 'вариатор', 'буксировка', 'предохранитель')..." 
+                <input type="text" id="manualSearch" oninput="filterManual()" placeholder="🔍 Поиск по мануалу и предохранителям ('прикуриватель', 'фары', 'CTBA', 'печка', 'масло')..." 
                        class="w-full text-xs sm:text-sm border rounded-lg p-2.5 bg-slate-50 border-slate-300 focus:outline-blue-500">
             </div>
+
+            <!-- РАЗДЕЛ: ПРЕДОХРАНИТЕЛИ И РЕЛЕ -->
+            <section id="sec_fuses" class="manual-section bg-white rounded-xl p-5 border-2 border-amber-300 shadow-sm space-y-6">
+                <div class="border-b border-slate-200 pb-3">
+                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <span>⚡</span> Блоки предохранителей (Салон и Моторный отсек)
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-1">
+                        В Honda N-WGN применяются низкопрофильные мини-предохранители (Low Profile Mini). Пинцет (съемник) и запасные предохранители расположены под крышкой подкапотного блока.
+                    </p>
+                </div>
+
+                <!-- 1. Салонный блок -->
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-blue-600"></span> Салонный блок предохранителей (под рулевой колонкой)
+                        </h3>
+                        <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">Слева от педали тормоза</span>
+                    </div>
+
+                    <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-center">
+                        <img src="/static/manual_img/fuses_cabin_diagram.png" alt="Схема салонного блока предохранителей" class="manual-img">
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left border border-slate-200 rounded-lg overflow-hidden">
+                            <thead class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200">
+                                <tr>
+                                    <th class="p-2.5 w-12 text-center">№</th>
+                                    <th class="p-2.5 w-24">Номинал</th>
+                                    <th class="p-2.5">Защищаемая цепь / Потребители</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">1</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-800">15 A</span></td>
+                                    <td class="p-2 font-medium text-slate-800">Розетка аксессуаров / Прикуриватель 12V (Accessory Socket)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">2</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-800">15 A</span></td>
+                                    <td class="p-2">Топливный насос (Fuel Pump)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">3</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-amber-100 text-amber-800">10 A</span></td>
+                                    <td class="p-2">Подушки безопасности (Блок SRS)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">4</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-amber-100 text-amber-800">10 A</span></td>
+                                    <td class="p-2">Стоп-сигналы (Stop Light)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">5</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-amber-100 text-amber-800">10 A</span></td>
+                                    <td class="p-2">Аудиосистема / Штатный монитор (Audio)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">6</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-slate-200 text-slate-700">7.5 A</span></td>
+                                    <td class="p-2">Приборный щиток / Индикация спидометра (Meter)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">7</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-slate-200 text-slate-700">7.5 A</span></td>
+                                    <td class="p-2">Электропривод и складывание боковых зеркал</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">8</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-yellow-100 text-yellow-800">20 A</span></td>
+                                    <td class="p-2">Стеклоочиститель лобового стекла (Front Wiper)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">9</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-amber-100 text-amber-800">10 A</span></td>
+                                    <td class="p-2">Стеклоочиститель задней двери (Rear Wiper)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">10</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-800">15 A</span></td>
+                                    <td class="p-2">Омыватель стекол (Washer Motor)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">11</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-yellow-100 text-yellow-800">20 A</span></td>
+                                    <td class="p-2">Стеклоподъемник двери водителя</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">12</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-yellow-100 text-yellow-800">20 A</span></td>
+                                    <td class="p-2">Стеклоподъемник пассажирской двери</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">13</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-800">15 A</span></td>
+                                    <td class="p-2">Центральный замок / Приводы замков дверей</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">14</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-slate-200 text-slate-700">7.5 A</span></td>
+                                    <td class="p-2">Климат-контроль / Панель управления отопителем (A/C)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">15</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-800">15 A</span></td>
+                                    <td class="p-2">Подогрев передних сидений (Seat Heater)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">16</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-slate-200 text-slate-700">7.5 A</span></td>
+                                    <td class="p-2">Радар автоматического торможения (CTBA)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">17</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-800">15 A</span></td>
+                                    <td class="p-2">Катушки зажигания ДВС (IG Coil)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">18</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-slate-200 text-slate-700">7.5 A</span></td>
+                                    <td class="p-2">Фонари заднего хода (Back-up Light)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">19</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-slate-200 text-slate-700">7.5 A</span></td>
+                                    <td class="p-2">Блок смарт-ключа / Кнопка Engine Start</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 2. Подкапотный блок -->
+                <div class="space-y-4 pt-4 border-t border-slate-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-amber-600"></span> Подкапотный блок предохранителей (рядом с АКБ)
+                        </h3>
+                        <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">Моторный отсек справа</span>
+                    </div>
+
+                    <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-center">
+                        <img src="/static/manual_img/fuses_engine_diagram.png" alt="Схема подкапотного блока предохранителей" class="manual-img">
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left border border-slate-200 rounded-lg overflow-hidden">
+                            <thead class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200">
+                                <tr>
+                                    <th class="p-2.5 w-12 text-center">№</th>
+                                    <th class="p-2.5 w-24">Номинал</th>
+                                    <th class="p-2.5">Защищаемая цепь / Потребители</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">1</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-red-100 text-red-800">100 A</span></td>
+                                    <td class="p-2 font-bold text-slate-900">Главный предохранитель питания бортовой сети (Battery Main)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">2</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-purple-100 text-purple-800">60 A</span></td>
+                                    <td class="p-2 font-semibold text-slate-800">Электроусилитель руля (EPS)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">3</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-green-100 text-green-800">30 A</span></td>
+                                    <td class="p-2">Основной вентилятор охлаждения радиатора ДВС (Cooling Fan)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">4</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-green-100 text-green-800">30 A</span></td>
+                                    <td class="p-2">Дополнительный вентилятор кондиционера (Sub Fan)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">5</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-orange-100 text-orange-800">40 A</span></td>
+                                    <td class="p-2">Мотор гидронасоса ABS / VSA (ABS Motor)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">6</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-green-100 text-green-800">30 A</span></td>
+                                    <td class="p-2">Электромотор вентилятора отопителя салона (Blower Motor)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">7</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-green-100 text-green-800">30 A</span></td>
+                                    <td class="p-2">Обогрев заднего стекла и зеркал (Rear Defroster)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">8</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-800">15 A</span></td>
+                                    <td class="p-2">Ближний свет фар (левая сторона)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">9</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-800">15 A</span></td>
+                                    <td class="p-2">Ближний свет фар (правая сторона)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">10</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-amber-100 text-amber-800">10 A</span></td>
+                                    <td class="p-2">Звуковой сигнал (Horn)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">11</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-slate-200 text-slate-700">7.5 A</span></td>
+                                    <td class="p-2">Электромагнитная муфта компрессора кондиционера (MG Clutch)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">12</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-800">15 A</span></td>
+                                    <td class="p-2">Блок управления двигателем PGM-FI (ECU Main)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-2 text-center font-bold">13</td>
+                                    <td class="p-2"><span class="px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-800">15 A</span></td>
+                                    <td class="p-2">Электронный привод дроссельной заслонки (DBW)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
 
             <!-- Раздел 1 -->
             <section id="sec1" class="manual-section bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-4">
