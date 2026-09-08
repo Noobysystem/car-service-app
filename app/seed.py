@@ -5,8 +5,8 @@ models.Base.metadata.create_all(bind=engine)
 db = SessionLocal()
 
 if not db.query(models.Vehicle).first():
-    prado = models.Vehicle(name="Toyota Land Cruiser Prado", engine="2.8 Дизель (1GD-FTV)", current_mileage=95000)
-    nwgn = models.Vehicle(name="Honda N-WGN Custom", engine="0.66 Turbo (S07A)", current_mileage=62000)
+    prado = models.Vehicle(name="Toyota Land Cruiser Prado", engine="2.7 Бензин (2TR-FE)", current_mileage=95000)
+    nwgn = models.Vehicle(name="Honda N-WGN Custom", engine="0.66 Атмо 4WD (S07A)", current_mileage=62000)
     kalina = models.Vehicle(name="Лада Калина", engine="1.6 8V", current_mileage=140000)
     db.add_all([prado, nwgn, kalina])
     db.commit()
@@ -19,6 +19,7 @@ if not db.query(models.Vehicle).first():
     nwgn_rules = [
         models.MaintenanceRule(vehicle_id=nwgn.id, title="Замена масла ДВС (малый картер)", interval_km=5000, last_mileage=60000),
         models.MaintenanceRule(vehicle_id=nwgn.id, title="Замена спецжидкости вариатора (HCF-2)", interval_km=25000, last_mileage=50000),
+        models.MaintenanceRule(vehicle_id=nwgn.id, title="Масло в заднем редукторе 4WD (DPSF-II)", interval_km=40000, last_mileage=50000),
     ]
     kalina_rules = [
         models.MaintenanceRule(vehicle_id=kalina.id, title="Замена масла ДВС", interval_km=8000, last_mileage=135000),
@@ -27,7 +28,4 @@ if not db.query(models.Vehicle).first():
     ]
     db.add_all(prado_rules + nwgn_rules + kalina_rules)
     db.commit()
-    print("База успешно заполнена тестовыми данными.")
-else:
-    print("Данные уже существуют.")
 db.close()

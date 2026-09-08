@@ -14,6 +14,54 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+def migrate_and_seed_data(db: Session):
+    """Корректировка характеристик авто и наполнение правильными артикулами"""
+    # 1. Корректировка Prado (Бензин)
+    prado = db.query(models.Vehicle).filter(models.Vehicle.name.contains("Prado")).first()
+    if prado and "Дизель" in (prado.engine or ""):
+        prado.engine = "2.7 Бензин (2TR-FE)"
+        db.query(models.PartReference).filter(
+            models.PartReference.vehicle_id == prado.id,
+            models.PartReference.category.in_(["Моторное масло", "Топливный фильтр", "Масляный фильтр"])
+        ).delete(synchronize_session=False)
+        db.add_all([
+            models.PartReference(vehicle_id=prado.id, category="Масляный фильтр", part_number="90915-YZZD2", brand="Toyota OEM", description="Для 2TR-FE (для 4.0 V6: 04152-YZZA1)"),
+            models.PartReference(vehicle_id=prado.id, category="Моторное масло", part_number="08880-80845", brand="Toyota 5W-30 / 0W-20", description="Объем: ~5.6-5.9 л (допуск API SP, ILSAC GF-6)"),
+            models.PartReference(vehicle_id=prado.id, category="Свечи зажигания", part_number="90919-01191", brand="Denso SK20HR11", description="Иридиевые, комплект 4 шт. (замена раз в 80-100 тыс. км)"),
+        ])
+        db.commit()
+
+    # 2. Корректировка Honda N-WGN (Атмо 4WD)
+    nwgn = db.query(models.Vehicle).filter(models.Vehicle.name.contains("N-WGN")).first()
+    if nwgn and ("Turbo" in (nwgn.engine or "") or "4WD" not in (nwgn.engine or "")):
+        nwgn.engine = "0.66 Атмо 4WD (S07A)"
+        
+        has_diff_rule = db.query(models.MaintenanceRule).filter(
+            models.MaintenanceRule.vehicle_id == nwgn.id,
+            models.MaintenanceRule.title.contains("редуктор")
+        ).first()
+        if not has_diff_rule:
+            db.add(models.MaintenanceRule(
+                vehicle_id=nwgn.id,
+                title="Масло в заднем редукторе 4WD (DPSF-II)",
+                interval_km=40000,
+                last_mileage=nwgn.current_mileage
+            ))
+            
+        has_diff_part = db.query(models.PartReference).filter(
+            models.PartReference.vehicle_id == nwgn.id,
+            models.PartReference.category.contains("редуктор")
+        ).first()
+        if not has_diff_part:
+            db.add(models.PartReference(
+                vehicle_id=nwgn.id,
+                category="Масло в задний редуктор 4WD",
+                part_number="08262-99964",
+                brand="Honda Ultra DPSF-II",
+                description="Объем: ~1.0-1.2 л (только спецжидкость DPSF-II!)"
+            ))
+        db.commit()
+
 def calculate_status(current_km: int, last_km: int, interval_km: int):
     passed = current_km - last_km
     remaining = interval_km - passed
@@ -25,6 +73,7 @@ def calculate_status(current_km: int, last_km: int, interval_km: int):
 
 @app.get("/", response_class=HTMLResponse)
 def dashboard(request: Request, db: Session = Depends(get_db)):
+    migrate_and_seed_data(db)
     vehicles = db.query(models.Vehicle).all()
     today_str = date.today().isoformat()
     car_cards = []
@@ -35,13 +84,13 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
             stat = calculate_status(v.current_mileage, r.last_mileage, r.interval_km)
             rules_status.append({"rule": r, "calc": stat})
         
-        # Сортировка истории ТО: свежие сверху
         services = sorted(v.services, key=lambda s: (s.date, s.mileage), reverse=True)
         
         car_cards.append({
             "vehicle": v,
             "rules": rules_status,
-            "services": services
+            "services": services,
+            "parts": v.parts
         })
 
     return templates.TemplateResponse(
@@ -88,7 +137,6 @@ def add_service(
     if vehicle and mileage > vehicle.current_mileage:
         vehicle.current_mileage = mileage
 
-    # Если выбран регламент — сбрасываем счетчик последнего ТО
     if rule_id and rule_id.strip().isdigit():
         rule = db.query(models.MaintenanceRule).get(int(rule_id))
         if rule:
@@ -102,5 +150,33 @@ def delete_service(service_id: int, db: Session = Depends(get_db)):
     log = db.query(models.ServiceLog).filter(models.ServiceLog.id == service_id).first()
     if log:
         db.delete(log)
+        db.commit()
+    return RedirectResponse(url="/", status_code=303)
+
+@app.post("/vehicles/{vehicle_id}/add-part")
+def add_part(
+    vehicle_id: int,
+    category: str = Form(...),
+    part_number: str = Form(...),
+    brand: str = Form(""),
+    description: str = Form(""),
+    db: Session = Depends(get_db)
+):
+    part = models.PartReference(
+        vehicle_id=vehicle_id,
+        category=category,
+        part_number=part_number.strip(),
+        brand=brand.strip(),
+        description=description.strip()
+    )
+    db.add(part)
+    db.commit()
+    return RedirectResponse(url="/", status_code=303)
+
+@app.post("/parts/{part_id}/delete")
+def delete_part(part_id: int, db: Session = Depends(get_db)):
+    part = db.query(models.PartReference).filter(models.PartReference.id == part_id).first()
+    if part:
+        db.delete(part)
         db.commit()
     return RedirectResponse(url="/", status_code=303)
