@@ -17,7 +17,6 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates.env.filters["currency"] = lambda val: f"{val:,.0f}".replace(",", " ") + " ₽"
 
 def migrate_and_seed_data(db: Session):
-    # Удаляем лишние авто (если остались)
     cars_to_remove = db.query(models.Vehicle).filter(
         (models.Vehicle.name.contains("Калина")) | (models.Vehicle.name.contains("Prado"))
     ).all()
@@ -34,7 +33,6 @@ def migrate_and_seed_data(db: Session):
         nwgn.engine = "0.66 Атмо 4WD (S07A)"
         db.commit()
 
-    # Корректировка пробегов прошлых ТО
     cvt_rule = db.query(models.MaintenanceRule).filter(
         models.MaintenanceRule.vehicle_id == nwgn.id,
         models.MaintenanceRule.title.contains("вариатора")
@@ -50,122 +48,6 @@ def migrate_and_seed_data(db: Session):
         diff_rule.last_mileage = 90000
     db.commit()
 
-    # ПОЛНАЯ БАЗА РАСХОДНИКОВ HONDA N-WGN JH2 (S07A NA 4WD)
-    # Перезаписываем список, чтобы гарантировать полноту данных
-    if db.query(models.PartReference).filter(models.PartReference.vehicle_id == nwgn.id).count() < 15:
-        db.query(models.PartReference).filter(models.PartReference.vehicle_id == nwgn.id).delete()
-        
-        full_parts_catalog = [
-            # Двигатель и фильтры
-            models.PartReference(
-                vehicle_id=nwgn.id, category="Моторное масло (4л)", part_number="08227-99974", 
-                brand="Honda Ultra LEO SP 0W-20", 
-                description="Синтетика API SP/GF-6. Заливка: 2.4 л (без фильтра), 2.6 л (с фильтром)"
-            ),
-            models.PartReference(
-                vehicle_id=nwgn.id, category="Масляный фильтр (OEM)", part_number="15400-RTA-003", 
-                brand="Honda OEM", 
-                description="Оригинал. Взаимозаменяем с 15400-PFB-004 и H1540-RTA-505 (HAMP)"
-            ),
-            models.PartReference(
-                vehicle_id=nwgn.id, category="Масляный фильтр (Аналог)", part_number="C-809", 
-                brand="VIC (Япония)", 
-                description="Высокое качество очистки. Также подходят Nitto 4HM-113, MANN W 67/1"
-            ),
-            models.PartReference(
-                vehicle_id=nwgn.id, category="Шайба сливной пробки ДВС", part_number="94109-14000", 
-                brand="Honda OEM", 
-                description="Алюминиевая прокладка под болт 14 мм (одноразовая при каждой замене)"
-            ),
-            models.PartReference(
-                vehicle_id=nwgn.id, category="Воздушный фильтр ДВС (Атмо)", part_number="17220-5Z1-003", 
-                brand="Honda OEM", 
-                description="Именно для атмосферного S07A. Проверенный аналог: VIC A-8001V"
-            ),
-            models.PartReference(
-                vehicle_id=nwgn.id, category="Салонный фильтр", part_number="80291-TY0-941", 
-                brand="Honda OEM", 
-                description="Аналоги: VIC AC-808E (угольный), Sakura CA-16130, Nitto 25-010D"
-            ),
-            models.PartReference(
-                vehicle_id=nwgn.id, category="Свечи зажигания (комплект 3 шт.)", part_number="12290-5R0-003", 
-                brand="NGK DILZKAR7C11S", 
-                description="Иридий, калильное 7 под NA мотор. Премиум: NGK LKAR7BRX11PS (97544)"
-            ),
-
-            # Вариатор (CVT)
-            models.PartReference(
-                vehicle_id=nwgn.id, category="Жидкость вариатора (4л)", part_number="08260-99964", 
-                brand="Honda Ultra HCF-2", 
-                description="Только спецжидкость 2-го поколения HCF-2! Частичная замена: ~2.4–2.6 л"
-            ),
-            models.PartReference(
-                vehicle_id=nwgn.id, category="Шайба сливной пробки CVT", part_number="90471-PX4-000", 
-                brand="Honda OEM", 
-                description="Алюминиевая уплотнительная шайба 18 мм"
-            ),
-
-            # Полный привод (4WD)
-            models.PartReference(
-                vehicle_id=nwgn.id, category="Масло заднего редуктора (4л)", part_number="08262-99964", 
-                brand="Honda Ultra DPSF-II", 
-                description="Спецжидкость Dual Pump II для заднего дифференциала 4WD. Заливка: ~1.0–1.2 л"
-            ),
-            models.PartReference(
-                vehicle_id=nwgn.id, category="Шайбы пробок редуктора", part_number="94109-20000 / 90471-PX4-000", 
-                brand="Honda OEM", 
-                description="Шайба 20 мм (заливная/уровневая) и 18 мм (сливная)"
-            ),
-
-            # Тормозная система
-            models.PartReference(
-                vehicle_id=nwgn.id, category="Передние тормозные колодки", part_number="45022-T6G-000", 
-                brand="Honda OEM", 
-                description="Комплект на переднюю ось. Японские аналоги: Akebono AN-769WK, Nisshinbo NP8048"
-            ),
-            models.PartReference(
-                vehicle_id=nwgn.id, category="Задние тормозные колодки", part_number="43153-TY0-003", 
-                brand="Honda OEM", 
-                description="Барабанные колодки задней оси. Японский аналог: Akebono NN4526"
-            ),
-            models.PartReference(
-                vehicle_id=nwgn.id, category="Тормозная жидкость (1л)", part_number="08203-99931", 
-                brand="Honda Ultra BF DOT 4", 
-                description="Спецификация DOT 4. Объем полной прокачки системы: ~0.8-1.0 л"
-            ),
-
-            # Охлаждение и ремни навесного
-            models.PartReference(
-                vehicle_id=nwgn.id, category="Антифриз (4л)", part_number="08234-99901", 
-                brand="Honda Long Life Coolant Type 2", 
-                description="Синий готовый антифриз (-37°C). Объем системы охлаждения: ~3.2-3.5 л"
-            ),
-            models.PartReference(
-                vehicle_id=nwgn.id, category="Ремень генератора и помпы", part_number="31110-R9G-004", 
-                brand="Honda OEM (Bando)", 
-                description="Поликлиновой ремень привода генератора и водяного насоса"
-            ),
-            models.PartReference(
-                vehicle_id=nwgn.id, category="Ремень кондиционера", part_number="19230-5Z1-004", 
-                brand="Honda OEM (Mitsuboshi)", 
-                description="Ремень привода компрессора кондиционера для атмосферного S07A"
-            ),
-
-            # Электрика и дворники
-            models.PartReference(
-                vehicle_id=nwgn.id, category="Аккумулятор EFB (Start-Stop)", part_number="M-42R", 
-                brand="GS Yuasa / Furukawa ECHNO", 
-                description="Типоразмер 55B20R / M-42R. Усиленный под частые пуски системы Idling Stop"
-            ),
-            models.PartReference(
-                vehicle_id=nwgn.id, category="Щетки стеклоочистителя", part_number="DU-053L + DU-035L", 
-                brand="Denso Hybrid", 
-                description="Комплект на лобовое стекло: водительская 525 мм (21\") и пассажирская 350 мм (14\")"
-            ),
-        ]
-        db.add_all(full_parts_catalog)
-        db.commit()
-
 def calculate_status(current_km: int, last_km: int, interval_km: int):
     passed = current_km - last_km
     remaining = interval_km - passed
@@ -174,6 +56,15 @@ def calculate_status(current_km: int, last_km: int, interval_km: int):
     elif remaining <= 1000:
         return {"status": "soon", "color": "text-amber-600 bg-amber-100", "remaining": remaining}
     return {"status": "ok", "color": "text-emerald-600 bg-emerald-100", "remaining": remaining}
+
+# Маршрут для иллюстрированного мануала
+@app.get("/manual", response_class=HTMLResponse)
+def get_manual_page(request: Request):
+    return templates.TemplateResponse(
+        request=request, 
+        name="manual.html", 
+        context={}
+    )
 
 @app.get("/", response_class=HTMLResponse)
 def dashboard(request: Request, db: Session = Depends(get_db)):
@@ -229,7 +120,6 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
         context={"cars": car_cards, "today": today_str, "stats": stats}
     )
 
-# --- Добавление и удаление авто ---
 @app.post("/vehicles/add")
 def add_vehicle(
     name: str = Form(...),
@@ -256,7 +146,6 @@ def delete_vehicle(vehicle_id: int, db: Session = Depends(get_db)):
         db.commit()
     return RedirectResponse(url="/", status_code=303)
 
-# --- Управление регламентами ---
 @app.post("/vehicles/{vehicle_id}/add-rule")
 def add_rule(
     vehicle_id: int,
@@ -299,7 +188,6 @@ def delete_rule(rule_id: int, db: Session = Depends(get_db)):
         db.commit()
     return RedirectResponse(url="/", status_code=303)
 
-# --- Одометр, ТО, Расходники ---
 @app.post("/vehicles/{vehicle_id}/update-mileage")
 def update_mileage(vehicle_id: int, mileage: int = Form(...), db: Session = Depends(get_db)):
     vehicle = db.query(models.Vehicle).filter(models.Vehicle.id == vehicle_id).first()
